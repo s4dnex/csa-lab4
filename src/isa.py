@@ -44,7 +44,7 @@ class Opcode(IntEnum):
     HALT = 0x21
 
 
-_INSTRUCTIONS_WITH_OPERANDS = frozenset(
+INSTRUCTIONS_WITH_OPERANDS = frozenset(
     {
         Opcode.PUSH,
         Opcode.PUSHM,
@@ -67,12 +67,12 @@ class Instruction:
         self.operand = operand
 
     def encode(self) -> int:
-        """Pack instruction into a 32-bit word: [8-bit opcode][24-bit operand]."""
+        """Pack instruction into a 32-bit word: [8-bit opcode] [24-bit operand]."""
         return ((self.opcode.value & 0xFF) << 24) | (self.operand & 0xFFFFFF)
 
     @classmethod
     def decode(cls, machine_word: int) -> "Instruction | int":
-        """Decode a 32-bit word into an Instruction, or return raw data if unknown."""
+        """Decode a 32-bit word into an Instruction or return raw data if unknown."""
         opcode_raw = (machine_word >> 24) & 0xFF
         operand = machine_word & 0xFFFFFF
         if operand & 0x800000:
@@ -86,7 +86,7 @@ class Instruction:
 class BinaryManager:
     @staticmethod
     def write_binary(bin_filepath: str, memory: list[int], start_address: int) -> None:
-        """Write memory dump to .bin and a text _dump.log alongside it."""
+        """Write binary file and a text log alongside it."""
 
         def flush_zeros(zero_end: int) -> None:
             if zero_end == zero_start:
@@ -118,7 +118,7 @@ class BinaryManager:
 
                 if isinstance(instruction, Instruction):
                     opcode = instruction.opcode
-                    if opcode in _INSTRUCTIONS_WITH_OPERANDS:
+                    if opcode in INSTRUCTIONS_WITH_OPERANDS:
                         instr_str = f"{opcode.name} {instruction.operand}"
                     else:
                         instr_str = opcode.name

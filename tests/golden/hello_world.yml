@@ -63,169 +63,170 @@ machine_code: |
   0030-2047 - 00000000 - 0
 
 output: |
-  Output: Hello, World!
-  Overall quantity of ticks: 809
-  Instructions executed: 162
-out_log: |-
-  Tick: 0003 | pc: 0010 | DS: [] | EI: 1 | carry: False | Instr: PUSH 0
-  Tick: 0007 | pc: 0011 | DS: [0] | EI: 1 | carry: False | Instr: POPM 14
-  Tick: 0012 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0018 | pc: 0013 | DS: [0] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0024 | pc: 0014 | DS: [72] | EI: 1 | carry: False | Instr: BEQZ 29
-  Tick: 0028 | pc: 0015 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
-  Tick: 0032 | pc: 0016 | DS: [2046] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0038 | pc: 0017 | DS: [2046, 0] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0044 | pc: 0018 | DS: [2046, 72] | EI: 1 | carry: False | Instr: POPI
-  Tick: 0049 | pc: 0019 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0055 | pc: 001A | DS: [0] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0059 | pc: 001B | DS: [0, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0063 | pc: 001C | DS: [1] | EI: 1 | carry: False | Instr: POPM 14
-  Tick: 0068 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
-  Tick: 0072 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0078 | pc: 0013 | DS: [1] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0084 | pc: 0014 | DS: [101] | EI: 1 | carry: False | Instr: BEQZ 29
-  Tick: 0088 | pc: 0015 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
-  Tick: 0092 | pc: 0016 | DS: [2046] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0098 | pc: 0017 | DS: [2046, 1] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0104 | pc: 0018 | DS: [2046, 101] | EI: 1 | carry: False | Instr: POPI
-  Tick: 0109 | pc: 0019 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0115 | pc: 001A | DS: [1] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0119 | pc: 001B | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0123 | pc: 001C | DS: [2] | EI: 1 | carry: False | Instr: POPM 14
-  Tick: 0128 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
-  Tick: 0132 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0138 | pc: 0013 | DS: [2] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0144 | pc: 0014 | DS: [108] | EI: 1 | carry: False | Instr: BEQZ 29
-  Tick: 0148 | pc: 0015 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
-  Tick: 0152 | pc: 0016 | DS: [2046] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0158 | pc: 0017 | DS: [2046, 2] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0164 | pc: 0018 | DS: [2046, 108] | EI: 1 | carry: False | Instr: POPI
-  Tick: 0169 | pc: 0019 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0175 | pc: 001A | DS: [2] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0179 | pc: 001B | DS: [2, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0183 | pc: 001C | DS: [3] | EI: 1 | carry: False | Instr: POPM 14
-  Tick: 0188 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
-  Tick: 0192 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0198 | pc: 0013 | DS: [3] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0204 | pc: 0014 | DS: [108] | EI: 1 | carry: False | Instr: BEQZ 29
-  Tick: 0208 | pc: 0015 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
-  Tick: 0212 | pc: 0016 | DS: [2046] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0218 | pc: 0017 | DS: [2046, 3] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0224 | pc: 0018 | DS: [2046, 108] | EI: 1 | carry: False | Instr: POPI
-  Tick: 0229 | pc: 0019 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0235 | pc: 001A | DS: [3] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0239 | pc: 001B | DS: [3, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0243 | pc: 001C | DS: [4] | EI: 1 | carry: False | Instr: POPM 14
-  Tick: 0248 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
-  Tick: 0252 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0258 | pc: 0013 | DS: [4] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0264 | pc: 0014 | DS: [111] | EI: 1 | carry: False | Instr: BEQZ 29
-  Tick: 0268 | pc: 0015 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
-  Tick: 0272 | pc: 0016 | DS: [2046] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0278 | pc: 0017 | DS: [2046, 4] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0284 | pc: 0018 | DS: [2046, 111] | EI: 1 | carry: False | Instr: POPI
-  Tick: 0289 | pc: 0019 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0295 | pc: 001A | DS: [4] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0299 | pc: 001B | DS: [4, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0303 | pc: 001C | DS: [5] | EI: 1 | carry: False | Instr: POPM 14
-  Tick: 0308 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
-  Tick: 0312 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0318 | pc: 0013 | DS: [5] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0324 | pc: 0014 | DS: [44] | EI: 1 | carry: False | Instr: BEQZ 29
-  Tick: 0328 | pc: 0015 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
-  Tick: 0332 | pc: 0016 | DS: [2046] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0338 | pc: 0017 | DS: [2046, 5] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0344 | pc: 0018 | DS: [2046, 44] | EI: 1 | carry: False | Instr: POPI
-  Tick: 0349 | pc: 0019 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0355 | pc: 001A | DS: [5] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0359 | pc: 001B | DS: [5, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0363 | pc: 001C | DS: [6] | EI: 1 | carry: False | Instr: POPM 14
-  Tick: 0368 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
-  Tick: 0372 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0378 | pc: 0013 | DS: [6] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0384 | pc: 0014 | DS: [32] | EI: 1 | carry: False | Instr: BEQZ 29
-  Tick: 0388 | pc: 0015 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
-  Tick: 0392 | pc: 0016 | DS: [2046] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0398 | pc: 0017 | DS: [2046, 6] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0404 | pc: 0018 | DS: [2046, 32] | EI: 1 | carry: False | Instr: POPI
-  Tick: 0409 | pc: 0019 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0415 | pc: 001A | DS: [6] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0419 | pc: 001B | DS: [6, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0423 | pc: 001C | DS: [7] | EI: 1 | carry: False | Instr: POPM 14
-  Tick: 0428 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
-  Tick: 0432 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0438 | pc: 0013 | DS: [7] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0444 | pc: 0014 | DS: [87] | EI: 1 | carry: False | Instr: BEQZ 29
-  Tick: 0448 | pc: 0015 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
-  Tick: 0452 | pc: 0016 | DS: [2046] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0458 | pc: 0017 | DS: [2046, 7] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0464 | pc: 0018 | DS: [2046, 87] | EI: 1 | carry: False | Instr: POPI
-  Tick: 0469 | pc: 0019 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0475 | pc: 001A | DS: [7] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0479 | pc: 001B | DS: [7, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0483 | pc: 001C | DS: [8] | EI: 1 | carry: False | Instr: POPM 14
-  Tick: 0488 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
-  Tick: 0492 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0498 | pc: 0013 | DS: [8] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0504 | pc: 0014 | DS: [111] | EI: 1 | carry: False | Instr: BEQZ 29
-  Tick: 0508 | pc: 0015 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
-  Tick: 0512 | pc: 0016 | DS: [2046] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0518 | pc: 0017 | DS: [2046, 8] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0524 | pc: 0018 | DS: [2046, 111] | EI: 1 | carry: False | Instr: POPI
-  Tick: 0529 | pc: 0019 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0535 | pc: 001A | DS: [8] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0539 | pc: 001B | DS: [8, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0543 | pc: 001C | DS: [9] | EI: 1 | carry: False | Instr: POPM 14
-  Tick: 0548 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
-  Tick: 0552 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0558 | pc: 0013 | DS: [9] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0564 | pc: 0014 | DS: [114] | EI: 1 | carry: False | Instr: BEQZ 29
-  Tick: 0568 | pc: 0015 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
-  Tick: 0572 | pc: 0016 | DS: [2046] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0578 | pc: 0017 | DS: [2046, 9] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0584 | pc: 0018 | DS: [2046, 114] | EI: 1 | carry: False | Instr: POPI
-  Tick: 0589 | pc: 0019 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0595 | pc: 001A | DS: [9] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0599 | pc: 001B | DS: [9, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0603 | pc: 001C | DS: [10] | EI: 1 | carry: False | Instr: POPM 14
-  Tick: 0608 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
-  Tick: 0612 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0618 | pc: 0013 | DS: [10] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0624 | pc: 0014 | DS: [108] | EI: 1 | carry: False | Instr: BEQZ 29
-  Tick: 0628 | pc: 0015 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
-  Tick: 0632 | pc: 0016 | DS: [2046] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0638 | pc: 0017 | DS: [2046, 10] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0644 | pc: 0018 | DS: [2046, 108] | EI: 1 | carry: False | Instr: POPI
-  Tick: 0649 | pc: 0019 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0655 | pc: 001A | DS: [10] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0659 | pc: 001B | DS: [10, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0663 | pc: 001C | DS: [11] | EI: 1 | carry: False | Instr: POPM 14
-  Tick: 0668 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
-  Tick: 0672 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0678 | pc: 0013 | DS: [11] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0684 | pc: 0014 | DS: [100] | EI: 1 | carry: False | Instr: BEQZ 29
-  Tick: 0688 | pc: 0015 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
-  Tick: 0692 | pc: 0016 | DS: [2046] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0698 | pc: 0017 | DS: [2046, 11] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0704 | pc: 0018 | DS: [2046, 100] | EI: 1 | carry: False | Instr: POPI
-  Tick: 0709 | pc: 0019 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0715 | pc: 001A | DS: [11] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0719 | pc: 001B | DS: [11, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0723 | pc: 001C | DS: [12] | EI: 1 | carry: False | Instr: POPM 14
-  Tick: 0728 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
-  Tick: 0732 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0738 | pc: 0013 | DS: [12] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0744 | pc: 0014 | DS: [33] | EI: 1 | carry: False | Instr: BEQZ 29
-  Tick: 0748 | pc: 0015 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
-  Tick: 0752 | pc: 0016 | DS: [2046] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0758 | pc: 0017 | DS: [2046, 12] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0764 | pc: 0018 | DS: [2046, 33] | EI: 1 | carry: False | Instr: POPI
-  Tick: 0769 | pc: 0019 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0775 | pc: 001A | DS: [12] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0779 | pc: 001B | DS: [12, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0783 | pc: 001C | DS: [13] | EI: 1 | carry: False | Instr: POPM 14
-  Tick: 0788 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
-  Tick: 0792 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 14
-  Tick: 0798 | pc: 0013 | DS: [13] | EI: 1 | carry: False | Instr: PUSHI
-  Tick: 0804 | pc: 0014 | DS: [0] | EI: 1 | carry: False | Instr: BEQZ 29
-  Tick: 0808 | pc: 001E | DS: [] | EI: 1 | carry: False | Instr: HALT
+  Output:       Hello, World!
+  Ticks:        809
+  Instructions: 162
+out_log: |2-
+   ISR  | Tick  |  PC  |      Data Stack      | EI | C | V | 
+   ---  | 00003 | 0010 | []                   | 1  | 0 | 0 | PUSH 0
+   ---  | 00007 | 0011 | [0]                  | 1  | 0 | 0 | POPM 14
+   ---  | 00012 | 0012 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00018 | 0013 | [0]                  | 1  | 0 | 0 | PUSHI
+   ---  | 00024 | 0014 | [72]                 | 1  | 0 | 0 | BEQZ 29
+   ---  | 00028 | 0015 | []                   | 1  | 0 | 0 | PUSH 2046
+   ---  | 00032 | 0016 | [2046]               | 1  | 0 | 0 | PUSHM 14
+   ---  | 00038 | 0017 | [2046, 0]            | 1  | 0 | 0 | PUSHI
+   ---  | 00044 | 0018 | [2046, 72]           | 1  | 0 | 0 | POPI
+   ---  | 00049 | 0019 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00055 | 001A | [0]                  | 1  | 0 | 0 | PUSH 1
+   ---  | 00059 | 001B | [0, 1]               | 1  | 0 | 0 | ADD
+   ---  | 00063 | 001C | [1]                  | 1  | 0 | 0 | POPM 14
+   ---  | 00068 | 001D | []                   | 1  | 0 | 0 | JUMP 17
+   ---  | 00072 | 0012 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00078 | 0013 | [1]                  | 1  | 0 | 0 | PUSHI
+   ---  | 00084 | 0014 | [101]                | 1  | 0 | 0 | BEQZ 29
+   ---  | 00088 | 0015 | []                   | 1  | 0 | 0 | PUSH 2046
+   ---  | 00092 | 0016 | [2046]               | 1  | 0 | 0 | PUSHM 14
+   ---  | 00098 | 0017 | [2046, 1]            | 1  | 0 | 0 | PUSHI
+   ---  | 00104 | 0018 | [2046, 101]          | 1  | 0 | 0 | POPI
+   ---  | 00109 | 0019 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00115 | 001A | [1]                  | 1  | 0 | 0 | PUSH 1
+   ---  | 00119 | 001B | [1, 1]               | 1  | 0 | 0 | ADD
+   ---  | 00123 | 001C | [2]                  | 1  | 0 | 0 | POPM 14
+   ---  | 00128 | 001D | []                   | 1  | 0 | 0 | JUMP 17
+   ---  | 00132 | 0012 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00138 | 0013 | [2]                  | 1  | 0 | 0 | PUSHI
+   ---  | 00144 | 0014 | [108]                | 1  | 0 | 0 | BEQZ 29
+   ---  | 00148 | 0015 | []                   | 1  | 0 | 0 | PUSH 2046
+   ---  | 00152 | 0016 | [2046]               | 1  | 0 | 0 | PUSHM 14
+   ---  | 00158 | 0017 | [2046, 2]            | 1  | 0 | 0 | PUSHI
+   ---  | 00164 | 0018 | [2046, 108]          | 1  | 0 | 0 | POPI
+   ---  | 00169 | 0019 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00175 | 001A | [2]                  | 1  | 0 | 0 | PUSH 1
+   ---  | 00179 | 001B | [2, 1]               | 1  | 0 | 0 | ADD
+   ---  | 00183 | 001C | [3]                  | 1  | 0 | 0 | POPM 14
+   ---  | 00188 | 001D | []                   | 1  | 0 | 0 | JUMP 17
+   ---  | 00192 | 0012 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00198 | 0013 | [3]                  | 1  | 0 | 0 | PUSHI
+   ---  | 00204 | 0014 | [108]                | 1  | 0 | 0 | BEQZ 29
+   ---  | 00208 | 0015 | []                   | 1  | 0 | 0 | PUSH 2046
+   ---  | 00212 | 0016 | [2046]               | 1  | 0 | 0 | PUSHM 14
+   ---  | 00218 | 0017 | [2046, 3]            | 1  | 0 | 0 | PUSHI
+   ---  | 00224 | 0018 | [2046, 108]          | 1  | 0 | 0 | POPI
+   ---  | 00229 | 0019 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00235 | 001A | [3]                  | 1  | 0 | 0 | PUSH 1
+   ---  | 00239 | 001B | [3, 1]               | 1  | 0 | 0 | ADD
+   ---  | 00243 | 001C | [4]                  | 1  | 0 | 0 | POPM 14
+   ---  | 00248 | 001D | []                   | 1  | 0 | 0 | JUMP 17
+   ---  | 00252 | 0012 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00258 | 0013 | [4]                  | 1  | 0 | 0 | PUSHI
+   ---  | 00264 | 0014 | [111]                | 1  | 0 | 0 | BEQZ 29
+   ---  | 00268 | 0015 | []                   | 1  | 0 | 0 | PUSH 2046
+   ---  | 00272 | 0016 | [2046]               | 1  | 0 | 0 | PUSHM 14
+   ---  | 00278 | 0017 | [2046, 4]            | 1  | 0 | 0 | PUSHI
+   ---  | 00284 | 0018 | [2046, 111]          | 1  | 0 | 0 | POPI
+   ---  | 00289 | 0019 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00295 | 001A | [4]                  | 1  | 0 | 0 | PUSH 1
+   ---  | 00299 | 001B | [4, 1]               | 1  | 0 | 0 | ADD
+   ---  | 00303 | 001C | [5]                  | 1  | 0 | 0 | POPM 14
+   ---  | 00308 | 001D | []                   | 1  | 0 | 0 | JUMP 17
+   ---  | 00312 | 0012 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00318 | 0013 | [5]                  | 1  | 0 | 0 | PUSHI
+   ---  | 00324 | 0014 | [44]                 | 1  | 0 | 0 | BEQZ 29
+   ---  | 00328 | 0015 | []                   | 1  | 0 | 0 | PUSH 2046
+   ---  | 00332 | 0016 | [2046]               | 1  | 0 | 0 | PUSHM 14
+   ---  | 00338 | 0017 | [2046, 5]            | 1  | 0 | 0 | PUSHI
+   ---  | 00344 | 0018 | [2046, 44]           | 1  | 0 | 0 | POPI
+   ---  | 00349 | 0019 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00355 | 001A | [5]                  | 1  | 0 | 0 | PUSH 1
+   ---  | 00359 | 001B | [5, 1]               | 1  | 0 | 0 | ADD
+   ---  | 00363 | 001C | [6]                  | 1  | 0 | 0 | POPM 14
+   ---  | 00368 | 001D | []                   | 1  | 0 | 0 | JUMP 17
+   ---  | 00372 | 0012 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00378 | 0013 | [6]                  | 1  | 0 | 0 | PUSHI
+   ---  | 00384 | 0014 | [32]                 | 1  | 0 | 0 | BEQZ 29
+   ---  | 00388 | 0015 | []                   | 1  | 0 | 0 | PUSH 2046
+   ---  | 00392 | 0016 | [2046]               | 1  | 0 | 0 | PUSHM 14
+   ---  | 00398 | 0017 | [2046, 6]            | 1  | 0 | 0 | PUSHI
+   ---  | 00404 | 0018 | [2046, 32]           | 1  | 0 | 0 | POPI
+   ---  | 00409 | 0019 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00415 | 001A | [6]                  | 1  | 0 | 0 | PUSH 1
+   ---  | 00419 | 001B | [6, 1]               | 1  | 0 | 0 | ADD
+   ---  | 00423 | 001C | [7]                  | 1  | 0 | 0 | POPM 14
+   ---  | 00428 | 001D | []                   | 1  | 0 | 0 | JUMP 17
+   ---  | 00432 | 0012 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00438 | 0013 | [7]                  | 1  | 0 | 0 | PUSHI
+   ---  | 00444 | 0014 | [87]                 | 1  | 0 | 0 | BEQZ 29
+   ---  | 00448 | 0015 | []                   | 1  | 0 | 0 | PUSH 2046
+   ---  | 00452 | 0016 | [2046]               | 1  | 0 | 0 | PUSHM 14
+   ---  | 00458 | 0017 | [2046, 7]            | 1  | 0 | 0 | PUSHI
+   ---  | 00464 | 0018 | [2046, 87]           | 1  | 0 | 0 | POPI
+   ---  | 00469 | 0019 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00475 | 001A | [7]                  | 1  | 0 | 0 | PUSH 1
+   ---  | 00479 | 001B | [7, 1]               | 1  | 0 | 0 | ADD
+   ---  | 00483 | 001C | [8]                  | 1  | 0 | 0 | POPM 14
+   ---  | 00488 | 001D | []                   | 1  | 0 | 0 | JUMP 17
+   ---  | 00492 | 0012 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00498 | 0013 | [8]                  | 1  | 0 | 0 | PUSHI
+   ---  | 00504 | 0014 | [111]                | 1  | 0 | 0 | BEQZ 29
+   ---  | 00508 | 0015 | []                   | 1  | 0 | 0 | PUSH 2046
+   ---  | 00512 | 0016 | [2046]               | 1  | 0 | 0 | PUSHM 14
+   ---  | 00518 | 0017 | [2046, 8]            | 1  | 0 | 0 | PUSHI
+   ---  | 00524 | 0018 | [2046, 111]          | 1  | 0 | 0 | POPI
+   ---  | 00529 | 0019 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00535 | 001A | [8]                  | 1  | 0 | 0 | PUSH 1
+   ---  | 00539 | 001B | [8, 1]               | 1  | 0 | 0 | ADD
+   ---  | 00543 | 001C | [9]                  | 1  | 0 | 0 | POPM 14
+   ---  | 00548 | 001D | []                   | 1  | 0 | 0 | JUMP 17
+   ---  | 00552 | 0012 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00558 | 0013 | [9]                  | 1  | 0 | 0 | PUSHI
+   ---  | 00564 | 0014 | [114]                | 1  | 0 | 0 | BEQZ 29
+   ---  | 00568 | 0015 | []                   | 1  | 0 | 0 | PUSH 2046
+   ---  | 00572 | 0016 | [2046]               | 1  | 0 | 0 | PUSHM 14
+   ---  | 00578 | 0017 | [2046, 9]            | 1  | 0 | 0 | PUSHI
+   ---  | 00584 | 0018 | [2046, 114]          | 1  | 0 | 0 | POPI
+   ---  | 00589 | 0019 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00595 | 001A | [9]                  | 1  | 0 | 0 | PUSH 1
+   ---  | 00599 | 001B | [9, 1]               | 1  | 0 | 0 | ADD
+   ---  | 00603 | 001C | [10]                 | 1  | 0 | 0 | POPM 14
+   ---  | 00608 | 001D | []                   | 1  | 0 | 0 | JUMP 17
+   ---  | 00612 | 0012 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00618 | 0013 | [10]                 | 1  | 0 | 0 | PUSHI
+   ---  | 00624 | 0014 | [108]                | 1  | 0 | 0 | BEQZ 29
+   ---  | 00628 | 0015 | []                   | 1  | 0 | 0 | PUSH 2046
+   ---  | 00632 | 0016 | [2046]               | 1  | 0 | 0 | PUSHM 14
+   ---  | 00638 | 0017 | [2046, 10]           | 1  | 0 | 0 | PUSHI
+   ---  | 00644 | 0018 | [2046, 108]          | 1  | 0 | 0 | POPI
+   ---  | 00649 | 0019 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00655 | 001A | [10]                 | 1  | 0 | 0 | PUSH 1
+   ---  | 00659 | 001B | [10, 1]              | 1  | 0 | 0 | ADD
+   ---  | 00663 | 001C | [11]                 | 1  | 0 | 0 | POPM 14
+   ---  | 00668 | 001D | []                   | 1  | 0 | 0 | JUMP 17
+   ---  | 00672 | 0012 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00678 | 0013 | [11]                 | 1  | 0 | 0 | PUSHI
+   ---  | 00684 | 0014 | [100]                | 1  | 0 | 0 | BEQZ 29
+   ---  | 00688 | 0015 | []                   | 1  | 0 | 0 | PUSH 2046
+   ---  | 00692 | 0016 | [2046]               | 1  | 0 | 0 | PUSHM 14
+   ---  | 00698 | 0017 | [2046, 11]           | 1  | 0 | 0 | PUSHI
+   ---  | 00704 | 0018 | [2046, 100]          | 1  | 0 | 0 | POPI
+   ---  | 00709 | 0019 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00715 | 001A | [11]                 | 1  | 0 | 0 | PUSH 1
+   ---  | 00719 | 001B | [11, 1]              | 1  | 0 | 0 | ADD
+   ---  | 00723 | 001C | [12]                 | 1  | 0 | 0 | POPM 14
+   ---  | 00728 | 001D | []                   | 1  | 0 | 0 | JUMP 17
+   ---  | 00732 | 0012 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00738 | 0013 | [12]                 | 1  | 0 | 0 | PUSHI
+   ---  | 00744 | 0014 | [33]                 | 1  | 0 | 0 | BEQZ 29
+   ---  | 00748 | 0015 | []                   | 1  | 0 | 0 | PUSH 2046
+   ---  | 00752 | 0016 | [2046]               | 1  | 0 | 0 | PUSHM 14
+   ---  | 00758 | 0017 | [2046, 12]           | 1  | 0 | 0 | PUSHI
+   ---  | 00764 | 0018 | [2046, 33]           | 1  | 0 | 0 | POPI
+   ---  | 00769 | 0019 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00775 | 001A | [12]                 | 1  | 0 | 0 | PUSH 1
+   ---  | 00779 | 001B | [12, 1]              | 1  | 0 | 0 | ADD
+   ---  | 00783 | 001C | [13]                 | 1  | 0 | 0 | POPM 14
+   ---  | 00788 | 001D | []                   | 1  | 0 | 0 | JUMP 17
+   ---  | 00792 | 0012 | []                   | 1  | 0 | 0 | PUSHM 14
+   ---  | 00798 | 0013 | [13]                 | 1  | 0 | 0 | PUSHI
+   ---  | 00804 | 0014 | [0]                  | 1  | 0 | 0 | BEQZ 29
+   ---  | 00808 | 001E | []                   | 1  | 0 | 0 | HALT

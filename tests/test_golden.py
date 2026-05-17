@@ -1,5 +1,3 @@
-"""Golden integration tests: translate + simulate each algorithm, compare against YAML snapshots."""
-
 import contextlib
 import io
 import logging

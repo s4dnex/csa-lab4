@@ -49,23 +49,23 @@
 
 ### Semantics
 
-**Evaluation strategy** — strictly sequential (imperative). Each instruction completes before the next one begins. Execution order is driven by the program counter `PC`. Control-flow instructions (e.g., `JUMP`, `BEQZ`, `BNEZ`, `BVS`, `CALL`) update `PC`.
+**Evaluation strategy** - strictly sequential (imperative). Each instruction completes before the next one begins. Execution order is driven by the program counter `PC`. Control-flow instructions (e.g., `JUMP`, `BEQZ`, `BNEZ`, `BVS`, `CALL`) update `PC`.
 
-**Scoping** — global. Labels are visible throughout the whole file.
+**Scoping** - global. Labels are visible throughout the whole file.
 
-**Typing** — none. All values are 32-bit signed integers. Characters are stored as `ord(char)`.
+**Typing** - none. All values are 32-bit signed integers. Characters are stored as `ord(char)`.
 
 **Literals:**
 
 - Numbers: decimal, hexadecimal (`0x…`), octal (`0o…`), binary (`0b…`). A literal may appear directly in an instruction operand (24-bit signed range: −8,388,608 … +8,388,607). Values outside this range must be placed in the data section with the `.word` directive.
 
-- Strings: stored only in data section via `.str` in C style. One machine word per character (`ord(c)`), terminated by a zero word (`0`). Length is not stored, traversal stops at the zero word.
+- Strings: stored only in data section via `.str` in C style. One machine word per character (`ord(c)`), terminated by a zero word (`\0`). Length is not stored, traversal stops at the zero word.
 
-**Variables** — declared with `.word` in data section. Each occupies one 32-bit machine word.
+**Variables** - declared with `.word` in data section. Each occupies one 32-bit machine word.
 
-**Procedures** — invoked with `CALL addr`. The return address is saved on the Return Stack. Finished with `RET`.
+**Procedures** - invoked with `CALL addr`. The return address is saved on the Return Stack. Finished with `RET`.
 
-**Interrupts** — the interrupt vector is stored at address `0x0`. On interrupt, `PC` is pushed to the Return Stack and the `EI` flag is cleared. Handling of interruption ends with `IRET` which restores `PC` and `EI`.
+**Interrupts** - the interrupt vector is stored at address `0x0`. On interrupt, `PC` is pushed to the Return Stack and the `EI` flag is cleared. Handling of interruption ends with `IRET` which restores `PC` and `EI`.
 
 **Example program:**
 
@@ -101,7 +101,7 @@ end:
 
 ### Memory Model
 
-Von Neumann architecture — a single address space for instructions and data.
+Von Neumann architecture - a single address space for instructions and data.
 
 ```mem
      Address     Description
@@ -122,9 +122,9 @@ Von Neumann architecture — a single address space for instructions and data.
 
 **Stacks:**
 
-- `Data Stack` — operand stack (depth up to 256). All computation goes through it.
+- `Data Stack` - operand stack (depth up to 256). All computation goes through it.
 
-- `Return Stack` — return-address stack (depth up to 256); holds return addresses for `CALL` / `RET` / `IRET`. Not manipulated directly by the programmer.
+- `Return Stack` - return-address stack (depth up to 256); holds return addresses for `CALL` / `RET` / `IRET`. Not manipulated directly by the programmer.
 
 **Addressing modes:**
 
@@ -136,11 +136,11 @@ Von Neumann architecture — a single address space for instructions and data.
 
 **Mapping to memory:**
 
-- `.word N` — one word initialized with N.
+- `.word N` - one word initialized with N.
 
 - `.str "str"` → `len(str) + 1` words: one word per character, last word is the null terminator.
 
-- Instructions — one 32-bit word (8-bit opcode + 24-bit operand).
+- Instructions - one 32-bit word (8-bit opcode + 24-bit operand).
 
 - Fixed address `0x0` that should contain `JUMP` to the interrupt handler.
 
@@ -150,20 +150,20 @@ Von Neumann architecture — a single address space for instructions and data.
 
 ### Processor Features
 
-- **Architecture:** stack (`stack`). No general-purpose registers — all computation uses the `Data Stack`. The Return Stack is managed by hardware for `CALL` / `RET` / `IRET`.
+- **Architecture:** stack (`stack`). No general-purpose registers - all computation uses the `Data Stack`. The Return Stack is managed by hardware for `CALL` / `RET` / `IRET`.
 
 - **I/O:** memory-mapped I/O (cell addresses 2045–2047). Access via `PUSHM` / `PUSHI` / `POPM` / `POPI`.
 
-- **Interrupts:** a single `input_port` cell holds the incoming character. Each **tick**, the interrupt schedule (`trap_schedule`) is checked: if the scheduled tick has arrived and the **port is empty**, the character is written to `input_port` and `irq` is set. If the port is busy, the new character is **dropped**. The handler runs **between instructions**: before fetch, `irq && ei` is tested — if true, `PC` is pushed to the Return Stack, `PC ← 0x0`, `ei ← 0` and `irq ← 0`. `IRET` restores `PC` and sets `ei ← 1`. `input_port` is cleared when read at `INPUT_ADDR`.
+- **Interrupts:** a single `input_port` cell holds the incoming character. Each **tick**, the interrupt schedule (`trap_schedule`) is checked: if the scheduled tick has arrived and the **port is empty**, the character is written to `input_port` and `irq` is set. If the port is busy, the new character is **dropped**. The handler runs **between instructions**: before fetch, `irq && ei` is tested - if true, `PC` is pushed to the Return Stack, `PC ← 0x0`, `ei ← 0` and `irq ← 0`. `IRET` restores `PC` and sets `ei ← 1`. `input_port` is cleared when read at `INPUT_ADDR`.
 
 - **Nested interrupts** are not allowed (`ei = 0`). If a character arrives while `ei = 0` but the port is already empty (the handler has read it), the character is placed in `input_port` and `irq` is set. After `IRET`, it will be serviced again because interrupts are re-enabled. If the port is still busy, the character is lost.
 
 - **Flags:**
-  - `carry` (C) — unsigned carry:
+  - `carry` (C) - unsigned carry:
     - ADD: set if the result does not fit in 32 bits
     - SUB: set if the minuend is less than the subtrahend (unsigned)
     - ADDC, SUBC: same rules, also accounting for the previous carry on input
-  - `overflow` (V) — signed overflow:
+  - `overflow` (V) - signed overflow:
     - ADD, ADDC: set if both operands have the same sign and the result has the opposite sign
     - SUB, SUBC: set if operands have opposite signs and the result does not match the minuend's sign
     - DIV: set when dividing INT_MIN by −1
@@ -243,9 +243,9 @@ python3 src/translator.py <source.asm> <output.bin>
 
 Produces two files:
 
-- `<output.bin>` — binary file. First 4 bytes: start address (`_start`), followed by 2048 × 4 bytes of memory.
+- `<output.bin>` - binary file. First 4 bytes: start address (`_start`), followed by 2048 × 4 bytes of memory.
 
-- `<output>_dump.log` — text dump in the form `<addr> - <HEXCODE> - <mnemonic>`.
+- `<output>_dump.log` - text dump in the form `<addr> - <HEXCODE> - <mnemonic>`.
 
 Example:
 
