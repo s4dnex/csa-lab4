@@ -10,9 +10,9 @@
 
 ---
 
-## Язык программирования
+## Programming Language
 
-### Синтаксис ассемблера в форме Бэкуса–Наура
+### Assembler BNF
 
 ```bnf
 <program>     ::= <line>*
@@ -47,27 +47,27 @@
 <comment>     ::= ";" <any character except '\n'>*
 ```
 
-### Семантика
+### Semantics
 
-**Стратегия вычислений** - строго последовательная (императивная). Каждая инструкция выполняется полностью до начала следующей. Порядок выполнения определяется счётчиком команд `PC`; переходы (`JMP`, `JZ`, `JNZ`, `JO`, `CALL`) изменяют `PC`.
+**Evaluation strategy** — strictly sequential (imperative). Each instruction completes before the next one begins. Execution order is driven by the program counter `PC`. Control flow instructions (e.g., `JMP`, `JZ`, `JNZ`, `JO`, `CALL`) update `PC`.
 
-**Области видимости** - глобальные. Метки (`label:`) видны во всём файле после первого прохода транслятора.
+**Scoping** — global. Labels are visible throughout the whole file.
 
-**Типизация** - отсутствует. Все значения - 32-битные знаковые целые числа. Символы хранятся как `ord(c)`.
+**Typing** — none. All values are 32-bit signed integers. Characters are stored as `ord(char)`.
 
-**Литералы:**
+**Literals:**
 
-- Числа: десятичные, шестнадцатеричные (`0x…`), восьмеричные (`0o…`), двоичные (`0b…`). Литерал помещается непосредственно в операнд инструкции (24-битный знаковый диапазон: −8 388 608 … +8 388 607). Числа вне этого диапазона или используемые многократно должны размещаться в секции `.data` директивой `.word`.
+- Numbers: decimal, hexadecimal (`0x…`), octal (`0o…`), binary (`0b…`). A literal may appear directly in an instruction operand (24-bit signed range: −8,388,608 … +8,388,607). Values outside this range must be placed in the data section with the `.word` directive.
 
-- Строки: хранятся только в секции `.data` директивой `.str` в стиле C — символы по одному слову (`ord(c)`), завершающий нуль (`0`). Длина не хранится; обход — до встречи нулевого слова.
+- Strings: stored only in data section via `.str` in C style. One machine word per character (`ord(c)`), terminated by a zero word (`0`). Length is not stored, traversal stops at the zero word.
 
-**Переменные**: объявляются директивой `.word` в секции `.data`. Каждая занимает одно 32-битное машинное слово.
+**Variables** — declared with `.word` in data section. Each occupies one 32-bit machine word.
 
-**Процедуры**: вызываются инструкцией `CALL addr`. Адрес возврата сохраняется в Return Stack. Завершаются инструкцией `RET`.
+**Procedures** — invoked with `CALL addr`. The return address is saved on the Return Stack. Finished with `RET`.
 
-**Прерывания**: вектор прерывания задан по адресу `0x000`. При прерывании аппаратно сохраняется `PC` в Return Stack и сбрасывается флаг `EI`. Завершается инструкцией `IRET` (восстанавливает `PC` и `EI`).
+**Interrupts** — the interrupt vector is stored at address `0x0`. On interrupt, `PC` is pushed to the Return Stack and the `EI` flag is cleared. Handling of interruption ends with `IRET` which restores `PC` and `EI`.
 
-**Пример программы:**
+**Example program:**
 
 ```asm
 .data
@@ -97,157 +97,157 @@ end:
 
 ---
 
-## Организация памяти
+## Memory Organization
 
-### Модель памяти
+### Memory Model
 
-Архитектура фон Неймана - единое адресное пространство для инструкций и данных.
+Von Neumann architecture — a single address space for instructions and data.
 
 ```mem
-     Адрес       Описание
+     Address     Description
   +-----------+----------------------------------+
-  | 0x000     | JMP <isr> (опционально)          | <- вектор прерывания
+  | 0x0       | interrupt vector (optional)      | 
   | ...       |                                  |
-  | M         | начало данных (.data)            | <- переменные, строки, числа
-  | ...       | данные                           |
-  | N (_start)| начало кода (.text)              | <- точка входа
-  | ...       | инструкции                       |
-  | 2045      | MMIO: INPUT_ADDR                 | <- read
-  | 2046      | MMIO: OUTPUT_ADDR_SYMB           | <- write (ASCII-вывод)
-  | 2047      | MMIO: OUTPUT_ADDR_DEC            | <- write (вывод числа)
+  | D         | start of .data                   | 
+  | ...       | variables                        |
+  | T         | start of .text                   | 
+  | ...       | _start: instructions             |
+  | 2045      | MMIO: INPUT                      | 
+  | 2046      | MMIO: OUTPUT_SYMB                | 
+  | 2047      | MMIO: OUTPUT_DEC                 |
   +-----------+----------------------------------+
 ```
 
-**Размер:** 2048 машинных слов по 32 бита каждое (2045 из них доступно под код и данные).
+**Size:** 2048 machine words of 32 bits each (2045 of which available for code and data).
 
-**Есть 2 стека:**
+**Stacks:**
 
-- `Data Stack` - стек данных (глубина до 256). Все вычисления производятся только через него.
+- `Data Stack` — operand stack (depth up to 256). All computation goes through it.
 
-- `Return Stack` - стек возвратов (глубина до 256); хранит адреса возврата для `CALL`/`RET`/`IRET`. Программист не управляет им напрямую.
+- `Return Stack` — return-address stack (depth up to 256); holds return addresses for `CALL` / `RET` / `IRET`. Not manipulated directly by the programmer.
 
-**Виды адресации:**
+**Addressing modes:**
 
-| Вид | Пример | Описание |
-| --- | --- | --- |
-| Непосредственная | `PUSH 42` | Число в операнде инструкции (24 бита, знаковое) |
-| Прямая | `PUSH_M addr` | Адрес в операнде, читается `MEM[addr]` |
-| Косвенная | `PUSH_IND` | Адрес на вершине стека, читается `MEM[T]` |
+| Mode        | Example       | Description                                      |
+|-------------|---------------|--------------------------------------------------|
+| Immediate   | `PUSH 42`     | Constant in the instruction operand              |
+| Direct      | `PUSH_M addr` | Reads from memory by address in the operand      |
+| Indirect    | `PUSH_IND`    | Read from memory by Address on the stack top     |
 
-**Отображение программы и данных на память:**
+**Mapping to memory:**
 
-- `.word N`: одно слово в памяти с начальным значением N.
+- `.word N` — one word initialized with N.
 
-- `.str "str"` -> `len(str)+1` слов: символы по одному слову, последнее слово — нулевой терминатор.
+- `.str "str"` → `len(str) + 1` words: one word per character, last word is the null terminator.
 
-- Инструкции: одно 32-битное слово (8 бит опкод + 24 бита операнд).
+- Instructions — one 32-bit word (8-bit opcode + 24-bit operand).
 
-- Адрес прерывания 0x000 (задан жестко): туда должен быть помещён `JMP` на обработчик.
+- Fixed address `0x0` that should contain `JMP` to the interrupt handler.
 
 ---
 
-## Система команд
+## Instruction Set
 
-### Особенности процессора
+### Processor Features
 
-- **Архитектура:** стековая (`stack`). Нет регистров общего назначения - все вычисления ведутся через `Data Stack`. Return Stack аппаратно обслуживает `CALL`/`RET`/`IRET`.
+- **Architecture:** stack (`stack`). No general-purpose registers — all computation uses the `Data Stack`. The Return Stack is managed by hardware for `CALL` / `RET` / `IRET`.
 
-- **Ввод-вывод:** memory-mapped IO (адреса ячеек 2045–2047). Доступ инструкциями `PUSH_M` / `PUSH_IND` / `POP_M` / `POP_IND`.
+- **I/O:** memory-mapped I/O (cell addresses 2045–2047). Access via `PUSH_M` / `PUSH_IND` / `POP_M` / `POP_IND`.
 
-- **Прерывания:** у процессора одна ячейка `input_port` для входного символа. Каждый **такт** проверяется расписание прерываний (`trap_schedule`): если наступил нужный такт и **порт пуст**, символ записывается в `input_port` и ставится флаг `irq`. Если порт занят, новый символ **теряется**. Сам вызов обработчика происходит **между инструкциями**: перед очередным fetch проверяется `irq && ei` - если выполняется, то в Return Stack пишется PC, PC <- 0x000, `ei <- 0` и `irq <- 0`. `IRET` восстанавливает PC и устанавливает `ei <- 1`. `input_port` освобождается при чтении по адресу INPUT_ADDR.
+- **Interrupts:** a single `input_port` cell holds the incoming character. Each **tick**, the interrupt schedule (`trap_schedule`) is checked: if the scheduled tick has arrived and the **port is empty**, the character is written to `input_port` and `irq` is set. If the port is busy, the new character is **dropped**. The handler runs **between instructions**: before fetch, `irq && ei` is tested — if true, `PC` is pushed to the Return Stack, `PC ← 0x0`, `ei ← 0` and `irq ← 0`. `IRET` restores `PC` and sets `ei ← 1`. `input_port` is cleared when read at `INPUT_ADDR`.
 
-- **Прерывание во время прерывания** невозможно (`ei = 0`). Если символ пришёл пока `ei = 0`, но порт уже пуст (обработчик уже успел прочитать символ) - новый символ помещается в `input_port`, ставится флаг `irq`. После `IRET` запустится повторная обработка, так как будут разрешены прерывания. Если же порт ещё занят, поступивший символ теряется.
+- **Nested interrupts** are not allowed (`ei = 0`). If a character arrives while `ei = 0` but the port is already empty (the handler has read it), the character is placed in `input_port` and `irq` is set. After `IRET`, it will be serviced again because interrupts are re-enabled. If the port is still busy, the character is lost.
 
-- **Флаги:**
-  - `carry` (C) - перенос/заём при беззнаковой арифметике:
-    - ADD: устанавливается, если результат не вмещается в 32 бита
-    - SUB: устанавливается, если уменьшаемое меньше вычитаемого (беззнаково)
-    - ADC, SBC: обновляются по тем же правилам, дополнительно учитывая старый carry во входных данных
-  - `overflow` (V) - знаковое переполнение:
-    - ADD, ADC: устанавливается, если оба операнда одного знака, а результат другого
-    - SUB, SBC: устанавливается, если операнды разных знаков, а результат не того знака, что уменьшаемое
-    - DIV: устанавливается при делении INT_MIN на -1
-  
-  Инструкции ADD, SUB, ADC и SBC перезаписывают оба флага. Остальные инструкции флаги не трогают.
+- **Flags:**
+  - `carry` (C) — unsigned carry:
+    - ADD: set if the result does not fit in 32 bits
+    - SUB: set if the minuend is less than the subtrahend (unsigned)
+    - ADC, SBC: same rules, also accounting for the previous carry on input
+  - `overflow` (V) — signed overflow:
+    - ADD, ADC: set if both operands have the same sign and the result has the opposite sign
+    - SUB, SBC: set if operands have opposite signs and the result does not match the minuend's sign
+    - DIV: set when dividing INT_MIN by −1
 
-### Кодирование инструкций
+  ADD, SUB, ADC, and SBC update both flags. Other instructions do not modify flags.
 
-Каждая инструкция - одно 32-битное машинное слово:
+### Instruction Encoding
+
+Each instruction is one 32-bit machine word:
 
 ```inst
  31      24 23                   0
 +----------+----------------------+
 |  opcode  |       operand        |
-| (8 бит)  |  (24 бита, знаковое) |
+| (8 bits) |      (24 bits)       |
 +----------+----------------------+
 ```
 
-Операнд знаково-расширяется до 32 бит при декодировании.
+The operand is sign-extended to 32 bits when decoded.
 
-### Набор инструкций
+### Instruction Set Summary
 
-Полный цикл инструкции = 3 такта выборки + n тактов исполнения.
+Full instruction cycle = 3 fetch cycles + n execute cycles.
 
-| Мнемоника   | Опкод | Операнд | Действие                                     | Такты исполнения |
-|-------------|-------|---------|----------------------------------------------|------------------|
-| `PUSH`      | 0x01  | `imm`   | `DS.push(imm)`                               | 1                |
-| `PUSH_M`    | 0x02  | `addr`  | `DS.push(MEM[addr])`                         | 3                |
-| `PUSH_IND`  | 0x03  | -       | `DS.push(MEM[DS.pop()])`                     | 3                |
-| `POP`       | 0x04  | -       | `DS.pop()`                                   | 1                |
-| `POP_M`     | 0x05  | `addr`  | `MEM[addr] = DS.pop()`                       | 2                |
-| `POP_IND`   | 0x06  | -       | `val=DS.pop(); addr=DS.pop(); MEM[addr]=val` | 3                |
-| `DUP`       | 0x07  | -       | `DS.push(DS[-1])`                            | 2                |
-| `ADD`       | 0x09  | -       | `DS.push(DS.pop() + DS.pop())` ; C, V        | 1                |
-| `SUB`       | 0x0A  | -       | `DS.push(DS.pop() − DS.pop())` ; C, V        | 1                |
-| `MUL`       | 0x0B  | -       | `DS.push((DS.pop() * DS.pop()) & 0xFFFFFFFF)`| 1                |
-| `MULH`      | 0x0C  | -       | `DS.push((DS.pop() * DS.pop()) >> 32)`       | 1                |
-| `ADC`       | 0x0D  | -       | `DS.push(DS.pop() + DS.pop() + C)` ; C, V    | 1                |
-| `SBC`       | 0x0E  | -       | `DS.push(DS.pop() − DS.pop() − C)` ; C, V    | 1                |
-| `DIV`       | 0x0F  | -       | `DS.push(DS.pop() / DS.pop())`               | 1                |
-| `MOD`       | 0x10  | -       | `DS.push(DS.pop() % DS.pop())`               | 1                |
-| `CMP`       | 0x11  | -       | `DS.push(DS.pop() == DS.pop() ? 1 : 0)`      | 1                |
-| `GT`        | 0x12  | -       | `DS.push(DS.pop() > DS.pop() ? 1 : 0)`       | 1                |
-| `LT`        | 0x13  | -       | `DS.push(DS.pop() < DS.pop() ? 1 : 0)`       | 1                |
-| `JMP`       | 0x14  | `addr`  | `PC = addr`                                  | 1                |
-| `JZ`        | 0x15  | `addr`  | `if DS.pop() == 0: PC = addr`                | 1                |
-| `JNZ`       | 0x16  | `addr`  | `if DS.pop() != 0: PC = addr`                | 1                |
-| `JO`        | 0x17  | `addr`  | `if OV: PC = addr`                           | 1                |
-| `CALL`      | 0x18  | `addr`  | `RS.push(PC); PC = addr`                     | 1                |
-| `RET`       | 0x19  | -       | `PC = RS.pop()`                              | 1                |
-| `IRET`      | 0x1A  | -       | `PC = RS.pop(); EI = 1`                      | 1                |
-| `HALT`      | 0x1B  | -       | Останов                                      | 1                |
+| Mnemonic   | Opcode | Operand     | Operation                                    | Execute cycles |
+|------------|--------|-------------|----------------------------------------------|----------------|
+| `PUSH`     | 0x01   | `immediate` | `DS.push(imm)`                               | 1              |
+| `PUSH_M`   | 0x02   | `address`   | `DS.push(MEM[addr])`                         | 3              |
+| `PUSH_IND` | 0x03   | -           | `DS.push(MEM[DS.pop()])`                     | 3              |
+| `POP`      | 0x04   | -           | `DS.pop()`                                   | 1              |
+| `POP_M`    | 0x05   | `address`   | `MEM[addr] = DS.pop()`                       | 2              |
+| `POP_IND`  | 0x06   | -           | `val=DS.pop(); addr=DS.pop(); MEM[addr]=val` | 3              |
+| `DUP`      | 0x07   | -           | `DS.push(DS[-1])`                            | 2              |
+| `ADD`      | 0x09   | -           | `DS.push(DS.pop() + DS.pop())` ; C, V        | 1              |
+| `SUB`      | 0x0A   | -           | `DS.push(DS.pop() − DS.pop())` ; C, V        | 1              |
+| `MUL`      | 0x0B   | -           | `DS.push((DS.pop() * DS.pop()) & 0xFFFFFFFF)`| 1              |
+| `MULH`     | 0x0C   | -           | `DS.push((DS.pop() * DS.pop()) >> 32)`       | 1              |
+| `ADC`      | 0x0D   | -           | `DS.push(DS.pop() + DS.pop() + C)` ; C, V    | 1              |
+| `SBC`      | 0x0E   | -           | `DS.push(DS.pop() − DS.pop() − C)` ; C, V    | 1              |
+| `DIV`      | 0x0F   | -           | `DS.push(DS.pop() / DS.pop())`               | 1              |
+| `MOD`      | 0x10   | -           | `DS.push(DS.pop() % DS.pop())`               | 1              |
+| `CMP`      | 0x11   | -           | `DS.push(DS.pop() == DS.pop() ? 1 : 0)`      | 1              |
+| `GT`       | 0x12   | -           | `DS.push(DS.pop() > DS.pop() ? 1 : 0)`       | 1              |
+| `LT`       | 0x13   | -           | `DS.push(DS.pop() < DS.pop() ? 1 : 0)`       | 1              |
+| `JMP`      | 0x14   | `address`   | `PC = addr`                                  | 1              |
+| `JZ`       | 0x15   | `address`   | `if DS.pop() == 0: PC = addr`                | 1              |
+| `JNZ`      | 0x16   | `address`   | `if DS.pop() != 0: PC = addr`                | 1              |
+| `JO`       | 0x17   | `address`   | `if OV: PC = addr`                           | 1              |
+| `CALL`     | 0x18   | `address`   | `RS.push(PC); PC = addr`                     | 1              |
+| `RET`      | 0x19   | -           | `PC = RS.pop()`                              | 1              |
+| `IRET`     | 0x1A   | -           | `PC = RS.pop(); EI = 1`                      | 1              |
+| `HALT`     | 0x1B   | -           | Halt                                         | 1              |
 
-**Пример PUSH_M addr (3 такта исполнения):**
+**Example for `PUSH_M <address>`:**
 
-1. operand -> MUX -> AR (`addr_sel = imm`, `latch_ar`)
+1. operand → MUX → AR (`addr_sel = imm`, `latch_ar`)
 
-2. MEM[AR] -> MUX -> DR (`read`, `dr_sel = mem`, `latch_dr`)
+2. MEM[AR] → MUX → DR (`read`, `dr_sel = mem`, `latch_dr`)
 
-3. DR -> MUX -> T (DS) (`stack_sel = DR`, `ds_push`)
+3. DR → MUX → T (DS) (`stack_sel = DR`, `ds_push`)
 
 ---
 
-## Транслятор
+## Translator
 
-### Интерфейс командной строки
-
-```sh
-python3 src/translator.py <исходный.asm> <выходной.bin>
-```
-
-Создаёт два файла:
-
-- `<выходной.bin>` - бинарный файл. Первые 4 байта - начальный адрес (`_start`), далее 2048 × 4 байта памяти.
-
-- `<выходной_dump.log>` - текстовый дамп в формате `<addr> - <HEXCODE> - <mnemonic>`.
-
-Пример:
+### Command-Line Interface
 
 ```sh
-python3 src/translator.py examples/hello.asm binAndLog/hello.bin
+python3 src/translator.py <source.asm> <output.bin>
 ```
 
-Пример дампа:
+Produces two files:
+
+- `<output.bin>` — binary file. First 4 bytes: start address (`_start`), followed by 2048 × 4 bytes of memory.
+
+- `<output>_dump.log` — text dump in the form `<addr> - <HEXCODE> - <mnemonic>`.
+
+Example:
+
+```sh
+python3 src/translator.py examples/hello_world.asm out/hello.bin
+```
+
+Example dump:
 
 ```text
 START: 0001
@@ -265,113 +265,112 @@ START: 0001
 0010-2047 - 00000000 - 0
 ```
 
-### Этапы трансляции
+### Translation Stages
 
 ```text
-Исходный код (.asm)
+Source code (.asm)
       |
       V
-Первый проход: разметка
-Разбор .data / .text / .org, назначение адресов меткам,
-запись данных (.word, .str) в массив памяти,
-сбор списка инструкций с их адресами (мнемоника + операнд)
+First pass: layout
+Parse .data / .text / .org, assign label addresses,
+write data (.word, .str) into the memory array,
+collect instructions with their addresses (mnemonic + operand)
       |
       V
-Второй проход: кодирование
-Подстановка адресов меток в операндах,
-кодирование каждой инструкции в 32-битное слово,
-запись в массив памяти
+Second pass: encoding
+Resolve label addresses in operands,
+encode each instruction as a 32-bit word,
+write into the memory array
       |
       V
-Запись .bin и _dump.log
+Write .bin and _dump.log
 ```
 
-**Ограничения транслятора:**
+**Translator limitations:**
 
-- Операнды: только метки или числовые литералы (нет выражений).
+- Operands: labels or numeric literals only (no expressions).
 
-- Нет проверки типов или диапазонов операндов.
+- No type or operand-range checking.
 
 ---
 
-## Модель процессора
+## Processor Model
 
 ### DataPath
 
 ![datapath.svg](scheme/datapath.svg)
 
-**Сигналы (управляются ControlUnit):**
+**Signals from Control Unit:**
 
-| Сигнал      | Описание                                                                               |
-|-------------|----------------------------------------------------------------------------------------|
-| `ds_push`   | Пушит выход MUX в Data Stack                                                           |
-| `ds_pop`    | Делает поп T из Data Stack                                                             |
-| `addr_sel`  | Селектор для выбора значения, которое пойдет в AR                                      |
-| `latch_ar`  | Защелкивает Address Register из MUX                                                    |
-| `dr_sel`    | Селектор для выбора значения, которое пойдет в DR                                      |
-| `latch_dr`  | Защелкивает Data Register                                                              |
-| `alu_op`    | Код операции для ALU                                                                   |
-| `stack_sel` | Селектор для выбора значения, которое пойдет в T (Data Stack)                          |
-| `read`      | Инициирует чтение: выбранное устройство (память или интерфейс) выдает данные на шину   |
-| `write`     | Инициирует запись: выбранное устройство (память или интерфейс) принимает данные с шины |
+| Signal      | Description                                                              |
+|-------------|--------------------------------------------------------------------------|
+| `ds_push`   | Push MUX output onto the Data Stack                                      |
+| `ds_pop`    | Pop T from the Data Stack                                                |
+| `addr_sel`  | MUX selector for the value loaded into AR                                |
+| `latch_ar`  | Latch Address Register from MUX                                          |
+| `dr_sel`    | MUX selector for the value loaded into DR                                |
+| `latch_dr`  | Latch Data Register                                                      |
+| `alu_op`    | ALU operation code                                                       |
+| `stack_sel` | MUX selector for the value pushed onto T (Data Stack)                    |
+| `read`      | Initiate read: selected device (memory or I/O) drives the bus            |
+| `write`     | Initiate write: selected device (memory or I/O) accepts data from the bus|
 
 ### ControlUnit
 
 ![controlunit.svg](scheme/controlunit.svg)
 
-**Сигналы ControlUnit:**
+**Signals from Control Unit:**
 
-| Сигнал     | Описание                                          |
-|------------|---------------------------------------------------|
-| `pc_sel`   | Селектор для выбора значения, которое пойдет в PC |
-| `latch_pc` | Защелкивает PC                                    |
-| `rs_push`  | Пушит PC в Return Stack                           |
-| `rs_pop`   | Делает поп из Return Stack                        |
-| `latch_ir` | Защелкивает IR                                    |
-| `inc`      | Увеличивает Step Counter на 1                     |
-| `reset`    | Обнуляет Step Counter                             |
+| Signal     | Description                              |
+|------------|------------------------------------------|
+| `pc_sel`   | MUX selector for the value loaded into PC|
+| `latch_pc` | Latch PC                                 |
+| `rs_push`  | Push PC onto the Return Stack            |
+| `rs_pop`   | Pop from the Return Stack                |
+| `latch_ir` | Latch IR                                 |
+| `inc`      | Increment Step Counter by 1              |
+| `reset`    | Reset Step Counter to 0                  |
 
-#### Цикл выборки
+#### Fetch Cycle
 
-Цикл выборки команды одинаковый для всех инструкций и занимает 3 такта:
+The instruction fetch cycle is the same for all instructions and takes 3 cycles:
 
-1. `PC -> MUX -> AR` (`latch_ar`)
-2. `MEM[AR] -> DR` (`latch_dr`)
-3. `DR -> IR` (`latch_ir`), одновременно с `PC + 1 -> PC` (`latch_pc`)
+1. `PC → MUX → AR` (`latch_ar`)
+2. `MEM[AR] → DR` (`latch_dr`)
+3. `DR → IR` (`latch_ir`), concurrently with `PC + 1 → PC` (`latch_pc`)
 
-После выборки запускается фаза исполнения.
-Между инструкциями проверяется условие `irq && ei`. Если оно выполняется, **аппаратно отрабатывается ещё один такт**: push PC в Return Stack, PC <- 0x000, `ei <- 0` и `irq <- 0`.
+After fetch, the execute phase runs.
+Between instructions, `irq && ei` is checked. If true, **one additional cycle** runs: push PC to the Return Stack, `PC ← 0x0`, `ei ← 0`, `irq ← 0`.
 
-### Особенности реализации симулятора
+### Simulator Implementation Notes
 
-- Точность - такт. Цикл выборки занимает **3 такта** для всех инструкций. На исполнение приходится от 1 до 3 тактов в зависимости от опкода.
-- Главный цикл устроен так: `check_interrupt() -> fetch() -> execute_instruction()`. После каждого такта команды вызывается `tick()`, который инкрементирует общее количество тактов и проверяет расписание прерываний.
-- Два аппаратных стека: `data_stack` и `return_stack`. Переполнение -> исключение -> останов.
-- MMIO: тип доступа определяется адресом. `memory_read(2045)` возвращает текущее значение `input_port` и опустошает ячейку. `memory_write(2046, v)` -> ASCII в `output_buffer`. `memory_write(2047, v)` -> decimal в `output_buffer`.
-- **Один входной порт**: `input_port`.
+- **Cycle-accurate.** Fetch always takes **3 cycles**. Execute takes 1–3 cycles depending on the opcode.
+- Main loop: `check_interrupt() → fetch() → execute_instruction()`. After each cycle, `tick()` advances the global tick counter and checks the interrupt schedule.
+- Two hardware stacks: `data_stack` and `return_stack`. Overflow raises an exception and stops the machine.
+- MMIO: access type is determined by address. `memory_read(2045)` returns the current `input_port` value and clears the port. `memory_write(2046, v)` appends ASCII to `output_buffer`. `memory_write(2047, v)` appends a decimal value to `output_buffer`.
 
 ---
 
-## Тестирование
+## Testing
 
-### Инструментальная цепочка
+### Toolchain
 
 ```text
 <name>.asm
        |  python3 src/translator.py <name.asm> <output.bin>
        V
 <name>.bin + <name>_dump.log
-       |  python3 src/machine.py <binary.bin> [trap_schedule.txt]
+       |  python3 src/machine.py <binary.bin> [input.txt]
        V
-stdout: журнал тактов + итоговая строка "Output: …"
+stdout: tick log + output
 ```
 
-**Пример:**
+**Example:**
 
 ```sh
-python3 src/translator.py examples/hello.asm tmp/hello.bin
+python3 src/translator.py examples/hello_world.asm out/hello.bin
 
-python3 src/machine.py tmp/hello.bin
+python3 src/machine.py out/hello.bin
 Tick: 0003 | pc: 0010 | DS: [] | EI: 1 | carry: False | Instr: PUSH 0
 Tick: 0007 | pc: 0011 | DS: [0] | EI: 1 | carry: False | Instr: POP_M 14
  ...
@@ -380,35 +379,35 @@ Overall quantity of ticks: 809
 Instructions executed: 162
 ```
 
-В логах `Tick` соответствует началу фазы исполнения текущей инструкции (после 3-тактового fetch). Строки вида `[ISR] Tick: ...` означают, что инструкция исполняется внутри обработчика прерывания (`ei = 0`). Отдельно логируется получение и потеря символов при вводе: `TRAP DELIVERED 'H' (0x48) -> input_port`, `TRAP 'l' DROPPED (port busy)`.
+In the log, `Tick` marks the start of the execute phase of the current instruction (after the 3-cycle fetch). Lines like `[ISR] Tick: ...` mean execution inside the interrupt handler (`ei = 0`). Input delivery and loss are logged separately: `TRAP DELIVERED 'H' (0x48) -> input_port`, `TRAP 'l' DROPPED (port busy)`.
 
-### Golden-тесты
+### Golden Tests
 
-Тесты расположены в `tests`. Запуск:
+Tests are contained in `tests` folder. Run:
 
 ```sh
-pytest                           # обычный запуск
-pytest tests/ --update-goldens    # перегенерировать эталоны
+pytest -v                         # normal run
+pytest tests/ --update-goldens    # regenerate snapshots
 ```
 
-| Тест          | Алгоритм                                                                    |
-|---------------|-----------------------------------------------------------------------------|
-| `hello`       | Напечатать hello world                                                      |
-| `cat`         | Печатать данные, поданные через ввод                                        |
-| `hello_Alex`  | Запросить у пользователя его имя, считать его, вывести на экран приветствие |
-| `sort`        | Пузырьковая сортировка массива                                              |
-| `double_math` | 64-битная арифметика                                                        |
-| `prob2`       | Euler #6: разность квадрата суммы и суммы квадратов 1..100                  |
-| `array_sum`   | Сумма элементов массива с пошаговым выводом промежуточных значений          |
-| `cat_loss`    | Потеря символов при плотном расписании прерываний                           |
+| Test          | Algorithm                                                                 |
+|---------------|---------------------------------------------------------------------------|
+| `hello_world` | Print hello world                                                         |
+| `cat`         | Echo input characters to output                                           |
+| `hello_user`  | Prompt for a name, read it, print a greeting                              |
+| `sort`        | Bubble sort of an array                                                   |
+| `double_math` | 64-bit arithmetic                                                         |
+| `prob2`       | Euler #6: difference of square of sum and sum of squares for 1..100       |
+| `array_sum`   | Sum array elements with step-by-step intermediate output                  |
+| `cat_loss`    | Character loss under a dense interrupt schedule                           |
 
-**Структура golden-файлов:**
+**Golden file layout:**
 
 ```text
 tests/golden/<name>.yml
-    in_source - код алгоритма
-    output - вывод без журнала
-    machine_code - машинный код и данные
-    out_log - лог
-    in_stdin (опционально) - входные данные
+    in_source - algorithm source code
+    output - program output without the tick log
+    machine_code - machine code and data dump
+    out_log - tick log
+    in_stdin - input data
 ```
