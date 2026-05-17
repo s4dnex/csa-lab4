@@ -2,91 +2,91 @@ in_source: |
   .text
   .org 0x0
   trap_vector:
-      jmp process_trap
+      jump process_trap
 
   _start:
   useless:
-      jmp useless
+      jump useless
 
   process_trap:
-      push_m 2045
+      pushm 2045
       dup
       push 0
       cmp
-      jz print_char
+      beqz print_char
 
       halt
 
   print_char:
-      pop_m 2046
+      popm 2046
       iret
 in_stdin: "[(10, 'H'), (50, 'e'), (90, 'l'), (130, 'l'), (170, 'o'), (210, '\\0')]"
 out_log: |-
-  Tick: 0003 | pc: 0002 | DS: [] | EI: 1 | carry: False | Instr: JMP 1
-  Tick: 0007 | pc: 0002 | DS: [] | EI: 1 | carry: False | Instr: JMP 1
+  Tick: 0003 | pc: 0002 | DS: [] | EI: 1 | carry: False | Instr: JUMP 1
+  Tick: 0007 | pc: 0002 | DS: [] | EI: 1 | carry: False | Instr: JUMP 1
   Tick: 0010 | TRAP DELIVERED 'H' (0x48) -> input_port
-  Tick: 0011 | pc: 0002 | DS: [] | EI: 1 | carry: False | Instr: JMP 1
+  Tick: 0011 | pc: 0002 | DS: [] | EI: 1 | carry: False | Instr: JUMP 1
   Tick: 0013 | INTERRUPT TRAP TRIGGERED | pc <- 0x000
-  [ISR] Tick: 0016 | pc: 0001 | DS: [] | EI: 0 | carry: False | Instr: JMP 2
-  [ISR] Tick: 0020 | pc: 0003 | DS: [] | EI: 0 | carry: False | Instr: PUSH_M 2045
+  [ISR] Tick: 0016 | pc: 0001 | DS: [] | EI: 0 | carry: False | Instr: JUMP 2
+  [ISR] Tick: 0020 | pc: 0003 | DS: [] | EI: 0 | carry: False | Instr: PUSHM 2045
   [ISR] Tick: 0026 | pc: 0004 | DS: [72] | EI: 0 | carry: False | Instr: DUP
   [ISR] Tick: 0031 | pc: 0005 | DS: [72, 72] | EI: 0 | carry: False | Instr: PUSH 0
   [ISR] Tick: 0035 | pc: 0006 | DS: [72, 72, 0] | EI: 0 | carry: False | Instr: CMP
-  [ISR] Tick: 0039 | pc: 0007 | DS: [72, 0] | EI: 0 | carry: False | Instr: JZ 8
-  [ISR] Tick: 0043 | pc: 0009 | DS: [72] | EI: 0 | carry: False | Instr: POP_M 2046
+  [ISR] Tick: 0039 | pc: 0007 | DS: [72, 0] | EI: 0 | carry: False | Instr: BEQZ 8
+  [ISR] Tick: 0043 | pc: 0009 | DS: [72] | EI: 0 | carry: False | Instr: POPM 2046
   [ISR] Tick: 0048 | pc: 000A | DS: [] | EI: 0 | carry: False | Instr: IRET
   Tick: 0050 | TRAP DELIVERED 'e' (0x65) -> input_port
-  Tick: 0052 | pc: 0002 | DS: [] | EI: 1 | carry: False | Instr: JMP 1
+  Tick: 0052 | pc: 0002 | DS: [] | EI: 1 | carry: False | Instr: JUMP 1
   Tick: 0054 | INTERRUPT TRAP TRIGGERED | pc <- 0x000
-  [ISR] Tick: 0057 | pc: 0001 | DS: [] | EI: 0 | carry: False | Instr: JMP 2
-  [ISR] Tick: 0061 | pc: 0003 | DS: [] | EI: 0 | carry: False | Instr: PUSH_M 2045
+  [ISR] Tick: 0057 | pc: 0001 | DS: [] | EI: 0 | carry: False | Instr: JUMP 2
+  [ISR] Tick: 0061 | pc: 0003 | DS: [] | EI: 0 | carry: False | Instr: PUSHM 2045
   [ISR] Tick: 0067 | pc: 0004 | DS: [101] | EI: 0 | carry: False | Instr: DUP
   [ISR] Tick: 0072 | pc: 0005 | DS: [101, 101] | EI: 0 | carry: False | Instr: PUSH 0
   [ISR] Tick: 0076 | pc: 0006 | DS: [101, 101, 0] | EI: 0 | carry: False | Instr: CMP
-  [ISR] Tick: 0080 | pc: 0007 | DS: [101, 0] | EI: 0 | carry: False | Instr: JZ 8
-  [ISR] Tick: 0084 | pc: 0009 | DS: [101] | EI: 0 | carry: False | Instr: POP_M 2046
+  [ISR] Tick: 0080 | pc: 0007 | DS: [101, 0] | EI: 0 | carry: False | Instr: BEQZ 8
+  [ISR] Tick: 0084 | pc: 0009 | DS: [101] | EI: 0 | carry: False | Instr: POPM 2046
   [ISR] Tick: 0089 | pc: 000A | DS: [] | EI: 0 | carry: False | Instr: IRET
   Tick: 0090 | TRAP DELIVERED 'l' (0x6c) -> input_port
   Tick: 0091 | INTERRUPT TRAP TRIGGERED | pc <- 0x000
-  [ISR] Tick: 0094 | pc: 0001 | DS: [] | EI: 0 | carry: False | Instr: JMP 2
-  [ISR] Tick: 0098 | pc: 0003 | DS: [] | EI: 0 | carry: False | Instr: PUSH_M 2045
+  [ISR] Tick: 0094 | pc: 0001 | DS: [] | EI: 0 | carry: False | Instr: JUMP 2
+  [ISR] Tick: 0098 | pc: 0003 | DS: [] | EI: 0 | carry: False | Instr: PUSHM 2045
   [ISR] Tick: 0104 | pc: 0004 | DS: [108] | EI: 0 | carry: False | Instr: DUP
   [ISR] Tick: 0109 | pc: 0005 | DS: [108, 108] | EI: 0 | carry: False | Instr: PUSH 0
   [ISR] Tick: 0113 | pc: 0006 | DS: [108, 108, 0] | EI: 0 | carry: False | Instr: CMP
-  [ISR] Tick: 0117 | pc: 0007 | DS: [108, 0] | EI: 0 | carry: False | Instr: JZ 8
-  [ISR] Tick: 0121 | pc: 0009 | DS: [108] | EI: 0 | carry: False | Instr: POP_M 2046
+  [ISR] Tick: 0117 | pc: 0007 | DS: [108, 0] | EI: 0 | carry: False | Instr: BEQZ 8
+  [ISR] Tick: 0121 | pc: 0009 | DS: [108] | EI: 0 | carry: False | Instr: POPM 2046
   [ISR] Tick: 0126 | pc: 000A | DS: [] | EI: 0 | carry: False | Instr: IRET
   Tick: 0130 | TRAP DELIVERED 'l' (0x6c) -> input_port
-  Tick: 0130 | pc: 0002 | DS: [] | EI: 1 | carry: False | Instr: JMP 1
+  Tick: 0130 | pc: 0002 | DS: [] | EI: 1 | carry: False | Instr: JUMP 1
   Tick: 0132 | INTERRUPT TRAP TRIGGERED | pc <- 0x000
-  [ISR] Tick: 0135 | pc: 0001 | DS: [] | EI: 0 | carry: False | Instr: JMP 2
-  [ISR] Tick: 0139 | pc: 0003 | DS: [] | EI: 0 | carry: False | Instr: PUSH_M 2045
+  [ISR] Tick: 0135 | pc: 0001 | DS: [] | EI: 0 | carry: False | Instr: JUMP 2
+  [ISR] Tick: 0139 | pc: 0003 | DS: [] | EI: 0 | carry: False | Instr: PUSHM 2045
   [ISR] Tick: 0145 | pc: 0004 | DS: [108] | EI: 0 | carry: False | Instr: DUP
   [ISR] Tick: 0150 | pc: 0005 | DS: [108, 108] | EI: 0 | carry: False | Instr: PUSH 0
   [ISR] Tick: 0154 | pc: 0006 | DS: [108, 108, 0] | EI: 0 | carry: False | Instr: CMP
-  [ISR] Tick: 0158 | pc: 0007 | DS: [108, 0] | EI: 0 | carry: False | Instr: JZ 8
-  [ISR] Tick: 0162 | pc: 0009 | DS: [108] | EI: 0 | carry: False | Instr: POP_M 2046
+  [ISR] Tick: 0158 | pc: 0007 | DS: [108, 0] | EI: 0 | carry: False | Instr: BEQZ 8
+  [ISR] Tick: 0162 | pc: 0009 | DS: [108] | EI: 0 | carry: False | Instr: POPM 2046
   [ISR] Tick: 0167 | pc: 000A | DS: [] | EI: 0 | carry: False | Instr: IRET
   Tick: 0170 | TRAP DELIVERED 'o' (0x6f) -> input_port
-  Tick: 0171 | pc: 0002 | DS: [] | EI: 1 | carry: False | Instr: JMP 1
+  Tick: 0171 | pc: 0002 | DS: [] | EI: 1 | carry: False | Instr: JUMP 1
   Tick: 0173 | INTERRUPT TRAP TRIGGERED | pc <- 0x000
-  [ISR] Tick: 0176 | pc: 0001 | DS: [] | EI: 0 | carry: False | Instr: JMP 2
-  [ISR] Tick: 0180 | pc: 0003 | DS: [] | EI: 0 | carry: False | Instr: PUSH_M 2045
+  [ISR] Tick: 0176 | pc: 0001 | DS: [] | EI: 0 | carry: False | Instr: JUMP 2
+  [ISR] Tick: 0180 | pc: 0003 | DS: [] | EI: 0 | carry: False | Instr: PUSHM 2045
   [ISR] Tick: 0186 | pc: 0004 | DS: [111] | EI: 0 | carry: False | Instr: DUP
   [ISR] Tick: 0191 | pc: 0005 | DS: [111, 111] | EI: 0 | carry: False | Instr: PUSH 0
   [ISR] Tick: 0195 | pc: 0006 | DS: [111, 111, 0] | EI: 0 | carry: False | Instr: CMP
-  [ISR] Tick: 0199 | pc: 0007 | DS: [111, 0] | EI: 0 | carry: False | Instr: JZ 8
-  [ISR] Tick: 0203 | pc: 0009 | DS: [111] | EI: 0 | carry: False | Instr: POP_M 2046
+  [ISR] Tick: 0199 | pc: 0007 | DS: [111, 0] | EI: 0 | carry: False | Instr: BEQZ 8
+  [ISR] Tick: 0203 | pc: 0009 | DS: [111] | EI: 0 | carry: False | Instr: POPM 2046
   [ISR] Tick: 0208 | pc: 000A | DS: [] | EI: 0 | carry: False | Instr: IRET
   Tick: 0210 | TRAP DELIVERED '\x00' (0x00) -> input_port
-  Tick: 0212 | pc: 0002 | DS: [] | EI: 1 | carry: False | Instr: JMP 1
+  Tick: 0212 | pc: 0002 | DS: [] | EI: 1 | carry: False | Instr: JUMP 1
   Tick: 0214 | INTERRUPT TRAP TRIGGERED | pc <- 0x000
-  [ISR] Tick: 0217 | pc: 0001 | DS: [] | EI: 0 | carry: False | Instr: JMP 2
-  [ISR] Tick: 0221 | pc: 0003 | DS: [] | EI: 0 | carry: False | Instr: PUSH_M 2045
+  [ISR] Tick: 0217 | pc: 0001 | DS: [] | EI: 0 | carry: False | Instr: JUMP 2
+  [ISR] Tick: 0221 | pc: 0003 | DS: [] | EI: 0 | carry: False | Instr: PUSHM 2045
   [ISR] Tick: 0227 | pc: 0004 | DS: [0] | EI: 0 | carry: False | Instr: DUP
   [ISR] Tick: 0232 | pc: 0005 | DS: [0, 0] | EI: 0 | carry: False | Instr: PUSH 0
   [ISR] Tick: 0236 | pc: 0006 | DS: [0, 0, 0] | EI: 0 | carry: False | Instr: CMP
-  [ISR] Tick: 0240 | pc: 0007 | DS: [0, 1] | EI: 0 | carry: False | Instr: JZ 8
+  [ISR] Tick: 0240 | pc: 0007 | DS: [0, 1] | EI: 0 | carry: False | Instr: BEQZ 8
   [ISR] Tick: 0244 | pc: 0008 | DS: [0] | EI: 0 | carry: False | Instr: HALT
 output: |
   Output: Hello
@@ -95,14 +95,14 @@ output: |
 machine_code: |
   START: 0001
 
-  0000 - 14000002 - JMP 2
-  0001 - 14000001 - JMP 1
-  0002 - 020007FD - PUSH_M 2045
+  0000 - 17000002 - JUMP 2
+  0001 - 17000001 - JUMP 1
+  0002 - 020007FD - PUSHM 2045
   0003 - 07000000 - DUP
   0004 - 01000000 - PUSH 0
   0005 - 11000000 - CMP
-  0006 - 15000008 - JZ 8
-  0007 - 1B000000 - HALT
-  0008 - 050007FE - POP_M 2046
-  0009 - 1A000000 - IRET
+  0006 - 18000008 - BEQZ 8
+  0007 - 21000000 - HALT
+  0008 - 050007FE - POPM 2046
+  0009 - 20000000 - IRET
   0010-2047 - 00000000 - 0

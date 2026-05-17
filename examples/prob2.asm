@@ -6,38 +6,38 @@ sum_sq: .word 0
 .text
 _start:
 loop:
-    push_m cur
+    pushm cur
     push 100
     gt
-    jnz done
+    bnez done
 
-    push_m sum
-    push_m cur
+    pushm sum
+    pushm cur
     add
-    pop_m sum
+    popm sum
 
-    push_m cur
+    pushm cur
     dup
     mul
-    push_m sum_sq
+    pushm sum_sq
     add
-    pop_m sum_sq
+    popm sum_sq
 
-    push_m cur
+    pushm cur
     push 1
     add
-    pop_m cur
-    jmp loop
+    popm cur
+    jump loop
 
 done:
-    push_m sum
+    pushm sum
     dup
     mul
 
-    push_m sum_sq
+    pushm sum_sq
     sub
 
     push 2047
-    pop_ind
+    popi
 
     halt

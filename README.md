@@ -49,7 +49,7 @@
 
 ### Semantics
 
-**Evaluation strategy** — strictly sequential (imperative). Each instruction completes before the next one begins. Execution order is driven by the program counter `PC`. Control flow instructions (e.g., `JMP`, `JZ`, `JNZ`, `JO`, `CALL`) update `PC`.
+**Evaluation strategy** — strictly sequential (imperative). Each instruction completes before the next one begins. Execution order is driven by the program counter `PC`. Control-flow instructions (e.g., `JUMP`, `BEQZ`, `BNEZ`, `BVS`, `CALL`) update `PC`.
 
 **Scoping** — global. Labels are visible throughout the whole file.
 
@@ -77,20 +77,20 @@ ptr: .word 0
 .text
 _start:
     push message
-    pop_m ptr
+    popm ptr
 loop:
-    push_m ptr
-    push_ind
-    jz end
+    pushm ptr
+    pushi
+    beqz end
     push 2046
-    push_m ptr
-    push_ind
-    pop_ind
-    push_m ptr
+    pushm ptr
+    pushi
+    popi
+    pushm ptr
     push 1
     add
-    pop_m ptr
-    jmp loop
+    popm ptr
+    jump loop
 end:
     halt
 ```
@@ -128,11 +128,11 @@ Von Neumann architecture — a single address space for instructions and data.
 
 **Addressing modes:**
 
-| Mode        | Example       | Description                                      |
-|-------------|---------------|--------------------------------------------------|
-| Immediate   | `PUSH 42`     | Constant in the instruction operand              |
-| Direct      | `PUSH_M addr` | Reads from memory by address in the operand      |
-| Indirect    | `PUSH_IND`    | Read from memory by Address on the stack top     |
+| Mode        | Example             | Description                                      |
+|-------------|---------------------|--------------------------------------------------|
+| Immediate   | `PUSH <immediate>`  | Load constant from the instruction operand       |
+| Direct      | `PUSHM <address>`   | Read from memory by address in the operand       |
+| Indirect    | `PUSHI`             | Read from memory by address on the stack top     |
 
 **Mapping to memory:**
 
@@ -142,7 +142,7 @@ Von Neumann architecture — a single address space for instructions and data.
 
 - Instructions — one 32-bit word (8-bit opcode + 24-bit operand).
 
-- Fixed address `0x0` that should contain `JMP` to the interrupt handler.
+- Fixed address `0x0` that should contain `JUMP` to the interrupt handler.
 
 ---
 
@@ -152,7 +152,7 @@ Von Neumann architecture — a single address space for instructions and data.
 
 - **Architecture:** stack (`stack`). No general-purpose registers — all computation uses the `Data Stack`. The Return Stack is managed by hardware for `CALL` / `RET` / `IRET`.
 
-- **I/O:** memory-mapped I/O (cell addresses 2045–2047). Access via `PUSH_M` / `PUSH_IND` / `POP_M` / `POP_IND`.
+- **I/O:** memory-mapped I/O (cell addresses 2045–2047). Access via `PUSHM` / `PUSHI` / `POPM` / `POPI`.
 
 - **Interrupts:** a single `input_port` cell holds the incoming character. Each **tick**, the interrupt schedule (`trap_schedule`) is checked: if the scheduled tick has arrived and the **port is empty**, the character is written to `input_port` and `irq` is set. If the port is busy, the new character is **dropped**. The handler runs **between instructions**: before fetch, `irq && ei` is tested — if true, `PC` is pushed to the Return Stack, `PC ← 0x0`, `ei ← 0` and `irq ← 0`. `IRET` restores `PC` and sets `ei ← 1`. `input_port` is cleared when read at `INPUT_ADDR`.
 
@@ -162,13 +162,13 @@ Von Neumann architecture — a single address space for instructions and data.
   - `carry` (C) — unsigned carry:
     - ADD: set if the result does not fit in 32 bits
     - SUB: set if the minuend is less than the subtrahend (unsigned)
-    - ADC, SBC: same rules, also accounting for the previous carry on input
+    - ADDC, SUBC: same rules, also accounting for the previous carry on input
   - `overflow` (V) — signed overflow:
-    - ADD, ADC: set if both operands have the same sign and the result has the opposite sign
-    - SUB, SBC: set if operands have opposite signs and the result does not match the minuend's sign
+    - ADD, ADDC: set if both operands have the same sign and the result has the opposite sign
+    - SUB, SUBC: set if operands have opposite signs and the result does not match the minuend's sign
     - DIV: set when dividing INT_MIN by −1
 
-  ADD, SUB, ADC, and SBC update both flags. Other instructions do not modify flags.
+  ADD, SUB, ADDC, and SUBC update both flags. Bitwise instructions (`NOT`, `AND`, `OR`) and branches do not modify flags.
 
 ### Instruction Encoding
 
@@ -191,33 +191,39 @@ Full instruction cycle = 3 fetch cycles + n execute cycles.
 | Mnemonic   | Opcode | Operand     | Operation                                    | Execute cycles |
 |------------|--------|-------------|----------------------------------------------|----------------|
 | `PUSH`     | 0x01   | `immediate` | `DS.push(imm)`                               | 1              |
-| `PUSH_M`   | 0x02   | `address`   | `DS.push(MEM[addr])`                         | 3              |
-| `PUSH_IND` | 0x03   | -           | `DS.push(MEM[DS.pop()])`                     | 3              |
+| `PUSHM`    | 0x02   | `address`   | `DS.push(MEM[addr])`                         | 3              |
+| `PUSHI`    | 0x03   | -           | `DS.push(MEM[DS.pop()])`                     | 3              |
 | `POP`      | 0x04   | -           | `DS.pop()`                                   | 1              |
-| `POP_M`    | 0x05   | `address`   | `MEM[addr] = DS.pop()`                       | 2              |
-| `POP_IND`  | 0x06   | -           | `val=DS.pop(); addr=DS.pop(); MEM[addr]=val` | 3              |
+| `POPM`     | 0x05   | `address`   | `MEM[addr] = DS.pop()`                       | 2              |
+| `POPI`     | 0x06   | -           | `val=DS.pop(); addr=DS.pop(); MEM[addr]=val` | 3              |
 | `DUP`      | 0x07   | -           | `DS.push(DS[-1])`                            | 2              |
 | `ADD`      | 0x09   | -           | `DS.push(DS.pop() + DS.pop())` ; C, V        | 1              |
 | `SUB`      | 0x0A   | -           | `DS.push(DS.pop() − DS.pop())` ; C, V        | 1              |
 | `MUL`      | 0x0B   | -           | `DS.push((DS.pop() * DS.pop()) & 0xFFFFFFFF)`| 1              |
 | `MULH`     | 0x0C   | -           | `DS.push((DS.pop() * DS.pop()) >> 32)`       | 1              |
-| `ADC`      | 0x0D   | -           | `DS.push(DS.pop() + DS.pop() + C)` ; C, V    | 1              |
-| `SBC`      | 0x0E   | -           | `DS.push(DS.pop() − DS.pop() − C)` ; C, V    | 1              |
+| `ADDC`     | 0x0D   | -           | `DS.push(DS.pop() + DS.pop() + C)` ; C, V    | 1              |
+| `SUBC`     | 0x0E   | -           | `DS.push(DS.pop() − DS.pop() − C)` ; C, V    | 1              |
 | `DIV`      | 0x0F   | -           | `DS.push(DS.pop() / DS.pop())`               | 1              |
 | `MOD`      | 0x10   | -           | `DS.push(DS.pop() % DS.pop())`               | 1              |
 | `CMP`      | 0x11   | -           | `DS.push(DS.pop() == DS.pop() ? 1 : 0)`      | 1              |
 | `GT`       | 0x12   | -           | `DS.push(DS.pop() > DS.pop() ? 1 : 0)`       | 1              |
 | `LT`       | 0x13   | -           | `DS.push(DS.pop() < DS.pop() ? 1 : 0)`       | 1              |
-| `JMP`      | 0x14   | `address`   | `PC = addr`                                  | 1              |
-| `JZ`       | 0x15   | `address`   | `if DS.pop() == 0: PC = addr`                | 1              |
-| `JNZ`      | 0x16   | `address`   | `if DS.pop() != 0: PC = addr`                | 1              |
-| `JO`       | 0x17   | `address`   | `if OV: PC = addr`                           | 1              |
-| `CALL`     | 0x18   | `address`   | `RS.push(PC); PC = addr`                     | 1              |
-| `RET`      | 0x19   | -           | `PC = RS.pop()`                              | 1              |
-| `IRET`     | 0x1A   | -           | `PC = RS.pop(); EI = 1`                      | 1              |
-| `HALT`     | 0x1B   | -           | Halt                                         | 1              |
+| `NOT`      | 0x14   | -           | `DS.push(~DS.pop())`                         | 1              |
+| `AND`      | 0x15   | -           | `DS.push(DS.pop() & DS.pop())`               | 1              |
+| `OR`       | 0x16   | -           | `DS.push(DS.pop() \| DS.pop())`              | 1              |
+| `JUMP`     | 0x17   | `address`   | `PC = addr`                                  | 1              |
+| `BEQZ`     | 0x18   | `address`   | `if DS.pop() == 0: PC = addr`                | 1              |
+| `BNEZ`     | 0x19   | `address`   | `if DS.pop() != 0: PC = addr`                | 1              |
+| `BVS`      | 0x1A   | `address`   | `if V: PC = addr`                            | 1              |
+| `BVC`      | 0x1B   | `address`   | `if !V: PC = addr`                           | 1              |
+| `BCS`      | 0x1C   | `address`   | `if C: PC = addr`                            | 1              |
+| `BCC`      | 0x1D   | `address`   | `if !C: PC = addr`                           | 1              |
+| `CALL`     | 0x1E   | `address`   | `RS.push(PC); PC = addr`                     | 1              |
+| `RET`      | 0x1F   | -           | `PC = RS.pop()`                              | 1              |
+| `IRET`     | 0x20   | -           | `PC = RS.pop(); EI = 1`                      | 1              |
+| `HALT`     | 0x21   | -           | Halt                                         | 1              |
 
-**Example for `PUSH_M <address>`:**
+**Example for `PUSHM <address>`:**
 
 1. operand → MUX → AR (`addr_sel = imm`, `latch_ar`)
 
@@ -252,16 +258,16 @@ Example dump:
 ```text
 START: 0001
 
-0000 - 14000002 - JMP 2
-0001 - 14000001 - JMP 1
-0002 - 020007FD - PUSH_M 2045
+0000 - 17000002 - JUMP 2
+0001 - 17000001 - JUMP 1
+0002 - 020007FD - PUSHM 2045
 0003 - 07000000 - DUP
 0004 - 01000000 - PUSH 0
 0005 - 11000000 - CMP
-0006 - 15000008 - JZ 8
-0007 - 1B000000 - HALT
-0008 - 050007FE - POP_M 2046
-0009 - 1A000000 - IRET
+0006 - 18000008 - BEQZ 8
+0007 - 21000000 - HALT
+0008 - 050007FE - POPM 2046
+0009 - 20000000 - IRET
 0010-2047 - 00000000 - 0
 ```
 
@@ -372,7 +378,7 @@ python3 src/translator.py examples/hello_world.asm out/hello.bin
 
 python3 src/machine.py out/hello.bin
 Tick: 0003 | pc: 0010 | DS: [] | EI: 1 | carry: False | Instr: PUSH 0
-Tick: 0007 | pc: 0011 | DS: [0] | EI: 1 | carry: False | Instr: POP_M 14
+Tick: 0007 | pc: 0011 | DS: [0] | EI: 1 | carry: False | Instr: POPM 14
  ...
 Output: Hello, World!
 Overall quantity of ticks: 809
@@ -399,7 +405,7 @@ pytest tests/ --update-goldens    # regenerate snapshots
 | `double_math` | 64-bit arithmetic                                                         |
 | `prob2`       | Euler #6: difference of square of sum and sum of squares for 1..100       |
 | `array_sum`   | Sum array elements with step-by-step intermediate output                  |
-| `cat_loss`    | Character loss under a dense interrupt schedule                           |
+| `cat_fail`    | Character loss under a dense interrupt schedule                           |
 
 **Golden file layout:**
 

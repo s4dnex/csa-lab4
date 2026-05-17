@@ -14,93 +14,93 @@ b:      .word 0
 
 .text
 _start:
-    push_m len
-    pop_m i
+    pushm len
+    popm i
 
 outer:
-    push_m i
-    jz print_loop
+    pushm i
+    beqz print_loop
 
     push 0
-    pop_m j
+    popm j
 
 inner:
-    push_m j
-    push_m i
+    pushm j
+    pushm i
     push 1
     sub
     lt
-    jz end_inner
+    beqz end_inner
 
     push array
-    push_m j
+    pushm j
     add
-    push_ind
-    pop_m a
+    pushi
+    popm a
 
     push array
-    push_m j
+    pushm j
     push 1
     add
     add
-    push_ind
-    pop_m b
+    pushi
+    popm b
 
-    push_m a
-    push_m b
+    pushm a
+    pushm b
     gt
-    jz no_swap
+    beqz no_swap
 
     push array
-    push_m j
+    pushm j
     add
-    push_m b
-    pop_ind
+    pushm b
+    popi
 
     push array
-    push_m j
+    pushm j
     push 1
     add
     add
-    push_m a
-    pop_ind
+    pushm a
+    popi
 
 no_swap:
-    push_m j
+    pushm j
     push 1
     add
-    pop_m j
-    jmp inner
+    popm j
+    jump inner
 
 end_inner:
-    push_m i
+    pushm i
     push 1
     sub
-    pop_m i
-    jmp outer
+    popm i
+    jump outer
 
 print_loop:
-    push_m i
-    push_m len
+    pushm i
+    pushm len
     lt
-    jz end
+    beqz end
 
     push 2047
     push array
-    push_m i
+    pushm i
     add
-    push_ind
-    pop_ind
+    pushi
+    popi
 
     push 2046
     push 32
-    pop_ind
+    popi
 
-    push_m i
+    pushm i
     push 1
     add
-    pop_m i
-    jmp print_loop
+    popm i
+    jump print_loop
 
 end:
     halt

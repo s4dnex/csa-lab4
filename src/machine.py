@@ -88,19 +88,25 @@ class DataPath:
             self.overflow = bool((a_u >> 31) != (b_u >> 31) and (bits >> 31) != (a_u >> 31))
             self.push(signed32(bits))
 
-        elif opcode == Opcode.ADC:
+        elif opcode == Opcode.ADDC:
             res = a_u + b_u + self.carry
             bits = res & _MASK32
             self.carry = res > _MASK32
             self.overflow = bool((a_u >> 31) == (b_u >> 31) and (bits >> 31) != (a_u >> 31))
             self.push(signed32(bits))
 
-        elif opcode == Opcode.SBC:
+        elif opcode == Opcode.SUBC:
             bits = (a_u - b_u - self.carry) & _MASK32
             self.carry = a_u < (b_u + self.carry)
             b_eff = (b_u + self.carry) & _MASK32
             self.overflow = bool((a_u >> 31) != (b_eff >> 31) and (bits >> 31) != (a_u >> 31))
             self.push(signed32(bits))
+
+        elif opcode == Opcode.AND:
+            self.push(signed32(a_u & b_u))
+
+        elif opcode == Opcode.OR:
+            self.push(signed32(a_u | b_u))
 
         elif opcode == Opcode.MUL:
             self.push(signed32(a * b))
@@ -127,6 +133,11 @@ class DataPath:
 
         elif opcode == Opcode.LT:
             self.push(1 if a < b else 0)
+
+    def alu_unary(self, opcode: Opcode) -> None:
+        a = self.pop()
+        if opcode == Opcode.NOT:
+            self.push(signed32((~a) & _MASK32))
 
 
 class ControlUnit:
@@ -196,7 +207,7 @@ class ControlUnit:
             self.dp.push(operand)
             self.tick()
 
-        elif opcode == Opcode.PUSH_M:
+        elif opcode == Opcode.PUSHM:
             self.tick()
             val = self.dp.memory_read(operand)
             self.tick()
@@ -207,7 +218,7 @@ class ControlUnit:
             self.dp.pop()
             self.tick()
 
-        elif opcode == Opcode.POP_M:
+        elif opcode == Opcode.POPM:
             val = self.dp.pop()
             self.tick()
             self.dp.memory_write(operand, val)
@@ -219,7 +230,7 @@ class ControlUnit:
             self.dp.push(val)
             self.tick()
 
-        elif opcode == Opcode.PUSH_IND:
+        elif opcode == Opcode.PUSHI:
             addr = self.dp.pop()
             self.tick()
             val = self.dp.memory_read(addr)
@@ -227,7 +238,7 @@ class ControlUnit:
             self.dp.push(val)
             self.tick()
 
-        elif opcode == Opcode.POP_IND:
+        elif opcode == Opcode.POPI:
             val = self.dp.pop()
             addr = self.dp.pop()
             self.tick()
@@ -235,29 +246,49 @@ class ControlUnit:
             self.tick()
 
         elif opcode in (
-            Opcode.ADD, Opcode.SUB, Opcode.ADC, Opcode.SBC,
+            Opcode.ADD, Opcode.SUB, Opcode.ADDC, Opcode.SUBC,
             Opcode.MUL, Opcode.MULH, Opcode.DIV, Opcode.MOD,
             Opcode.CMP, Opcode.GT, Opcode.LT,
+            Opcode.AND, Opcode.OR,
         ):
             self.dp.alu_op(opcode)
             self.tick()
 
-        elif opcode == Opcode.JMP:
+        elif opcode == Opcode.NOT:
+            self.dp.alu_unary(opcode)
+            self.tick()
+
+        elif opcode == Opcode.JUMP:
             self.pc = operand
             self.tick()
 
-        elif opcode == Opcode.JZ:
+        elif opcode == Opcode.BEQZ:
             if self.dp.pop() == 0:
                 self.pc = operand
             self.tick()
 
-        elif opcode == Opcode.JNZ:
+        elif opcode == Opcode.BNEZ:
             if self.dp.pop() != 0:
                 self.pc = operand
             self.tick()
 
-        elif opcode == Opcode.JO:
+        elif opcode == Opcode.BVS:
             if self.dp.overflow:
+                self.pc = operand
+            self.tick()
+
+        elif opcode == Opcode.BCS:
+            if self.dp.carry:
+                self.pc = operand
+            self.tick()
+
+        elif opcode == Opcode.BCC:
+            if not self.dp.carry:
+                self.pc = operand
+            self.tick()
+
+        elif opcode == Opcode.BVC:
+            if not self.dp.overflow:
                 self.pc = operand
             self.tick()
 

@@ -5,11 +5,11 @@ from enum import IntEnum
 class Opcode(IntEnum):
     # Data Movement Instructions
     PUSH = 0x01
-    PUSH_M = 0x02
-    PUSH_IND = 0x03
+    PUSHM = 0x02
+    PUSHI = 0x03
     POP = 0x04
-    POP_M = 0x05
-    POP_IND = 0x06
+    POPM = 0x05
+    POPI = 0x06
     DUP = 0x07
 
     # Arithmetic Instructions
@@ -17,36 +17,45 @@ class Opcode(IntEnum):
     SUB = 0x0A
     MUL = 0x0B
     MULH = 0x0C
-    ADC = 0x0D
-    SBC = 0x0E
+    ADDC = 0x0D
+    SUBC = 0x0E
     DIV = 0x0F
     MOD = 0x10
     CMP = 0x11
     GT = 0x12
     LT = 0x13
 
-    # Branching Instructions
-    JMP = 0x14
-    JZ = 0x15
-    JNZ = 0x16
-    JO = 0x17
+    # Bitwise Instructions
+    NOT = 0x14
+    AND = 0x15
+    OR = 0x16
 
     # Control Flow Instructions
-    CALL = 0x18
-    RET = 0x19
-    IRET = 0x1A
-    HALT = 0x1B
+    JUMP = 0x17
+    BEQZ = 0x18
+    BNEZ = 0x19
+    BVS = 0x1A
+    BVC = 0x1B
+    BCS = 0x1C
+    BCC = 0x1D
+    CALL = 0x1E
+    RET = 0x1F
+    IRET = 0x20
+    HALT = 0x21
 
 
 _INSTRUCTIONS_WITH_OPERANDS = frozenset(
     {
         Opcode.PUSH,
-        Opcode.PUSH_M,
-        Opcode.POP_M,
-        Opcode.JMP,
-        Opcode.JZ,
-        Opcode.JNZ,
-        Opcode.JO,
+        Opcode.PUSHM,
+        Opcode.POPM,
+        Opcode.JUMP,
+        Opcode.BEQZ,
+        Opcode.BNEZ,
+        Opcode.BVS,
+        Opcode.BVC,
+        Opcode.BCS,
+        Opcode.BCC,
         Opcode.CALL,
     }
 )
@@ -58,14 +67,12 @@ class Instruction:
         self.operand = operand
 
     def encode(self) -> int:
-        """Упаковывает инструкцию в 32 битное слово:
-        [8 битный опкод] [24 битный операнд]"""
+        """Pack instruction into a 32-bit word: [8-bit opcode][24-bit operand]."""
         return ((self.opcode.value & 0xFF) << 24) | (self.operand & 0xFFFFFF)
 
     @classmethod
     def decode(cls, machine_word: int) -> "Instruction | int":
-        """Распаковывает 32 битное слово в объект Instruction.
-        Если опкод неизвестен - возвращает сырые данные"""
+        """Decode a 32-bit word into an Instruction, or return raw data if unknown."""
         opcode_raw = (machine_word >> 24) & 0xFF
         operand = machine_word & 0xFFFFFF
         if operand & 0x800000:
@@ -79,7 +86,7 @@ class Instruction:
 class BinaryManager:
     @staticmethod
     def write_binary(bin_filepath: str, memory: list[int], start_address: int) -> None:
-        """Записывает дамп памяти в .bin и рядом кладёт текстовый дамп _dump.log."""
+        """Write memory dump to .bin and a text _dump.log alongside it."""
 
         def flush_zeros(zero_end: int) -> None:
             if zero_end == zero_start:
@@ -125,7 +132,7 @@ class BinaryManager:
 
     @staticmethod
     def read_binary(filepath: str) -> tuple[list[int], int]:
-        """Читает .bin: первые 4 байта — адрес старта, далее — память."""
+        """Read .bin: first 4 bytes are start address, then memory words."""
         memory: list[int] = []
         start_address = 0
         with open(filepath, "rb") as f:

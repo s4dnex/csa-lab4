@@ -6,24 +6,24 @@ ptr:        .word 0
 .text
 _start:
     push message
-    pop_m ptr
+    popm ptr
 
 loop:
-    push_m ptr
-    push_ind
-    jz end
+    pushm ptr
+    pushi
+    beqz end
 
     push 2046
-    push_m ptr
-    push_ind
-    pop_ind
+    pushm ptr
+    pushi
+    popi
 
-    push_m ptr
+    pushm ptr
     push 1
     add
-    pop_m ptr
+    popm ptr
 
-    jmp loop
+    jump loop
 
 end:
     halt

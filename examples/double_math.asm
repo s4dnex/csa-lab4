@@ -28,45 +28,45 @@ _start:
     push message_add
     call print_str
 
-    push_m a_lo
-    push_m b_lo
+    pushm a_lo
+    pushm b_lo
     add
-    pop_m res_lo
+    popm res_lo
 
-    push_m a_hi
-    push_m b_hi
-    adc
-    pop_m res_hi
+    pushm a_hi
+    pushm b_hi
+    addc
+    popm res_hi
 
     call print_result
 
     push message_sub
     call print_str
 
-    push_m c_lo
-    push_m d_lo
+    pushm c_lo
+    pushm d_lo
     sub
-    pop_m res_lo
+    popm res_lo
 
-    push_m c_hi
-    push_m d_hi
-    sbc
-    pop_m res_hi
+    pushm c_hi
+    pushm d_hi
+    subc
+    popm res_hi
 
     call print_result
 
     push message_mul
     call print_str
 
-    push_m e
-    push_m f
+    pushm e
+    pushm f
     mul
-    pop_m res_lo
+    popm res_lo
 
-    push_m e
-    push_m f
+    pushm e
+    pushm f
     mulh
-    pop_m res_hi
+    popm res_hi
 
     call print_result
 
@@ -74,39 +74,39 @@ _start:
 
 print_result:
     push 2047
-    push_m res_hi
-    pop_ind
+    pushm res_hi
+    popi
 
     push sep
     call print_str
 
     push 2047
-    push_m res_lo
-    pop_ind
+    pushm res_lo
+    popi
 
     push sep
     call print_str
     ret
 
 print_str:
-    pop_m print_ptr
+    popm print_ptr
 
 print_str_loop:
-    push_m print_ptr
-    push_ind
-    jz print_str_end
+    pushm print_ptr
+    pushi
+    beqz print_str_end
 
     push 2046
-    push_m print_ptr
-    push_ind
-    pop_ind
+    pushm print_ptr
+    pushi
+    popi
 
-    push_m print_ptr
+    pushm print_ptr
     push 1
     add
-    pop_m print_ptr
+    popm print_ptr
 
-    jmp print_str_loop
+    jump print_str_loop
 
 print_str_end:
     ret

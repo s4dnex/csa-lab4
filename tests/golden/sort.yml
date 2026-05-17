@@ -1,110 +1,110 @@
 in_source: |
-    .data
-    len:    .word 6
-    array:  .word 42
-            .word 15
-            .word 8
-            .word 100
-            .word 4
-            .word 23
+  .data
+  len:    .word 6
+  array:  .word 42
+          .word 15
+          .word 8
+          .word 100
+          .word 4
+          .word 23
 
-    i:      .word 0
-    j:      .word 0
-    a:      .word 0
-    b:      .word 0
+  i:      .word 0
+  j:      .word 0
+  a:      .word 0
+  b:      .word 0
 
-    .text
-    _start:
-        push_m len
-        pop_m i
+  .text
+  _start:
+      pushm len
+      popm i
 
-    outer:
-        push_m i
-        jz print_loop
+  outer:
+      pushm i
+      beqz print_loop
 
-        push 0
-        pop_m j
+      push 0
+      popm j
 
-    inner:
-        push_m j
-        push_m i
-        push 1
-        sub
-        lt
-        jz end_inner
+  inner:
+      pushm j
+      pushm i
+      push 1
+      sub
+      lt
+      beqz end_inner
 
-        push array
-        push_m j
-        add
-        push_ind
-        pop_m a
+      push array
+      pushm j
+      add
+      pushi
+      popm a
 
-        push array
-        push_m j
-        push 1
-        add
-        add
-        push_ind
-        pop_m b
+      push array
+      pushm j
+      push 1
+      add
+      add
+      pushi
+      popm b
 
-        push_m a
-        push_m b
-        gt
-        jz no_swap
+      pushm a
+      pushm b
+      gt
+      beqz no_swap
 
-        push array
-        push_m j
-        add
-        push_m b
-        pop_ind
+      push array
+      pushm j
+      add
+      pushm b
+      popi
 
-        push array
-        push_m j
-        push 1
-        add
-        add
-        push_m a
-        pop_ind
+      push array
+      pushm j
+      push 1
+      add
+      add
+      pushm a
+      popi
 
-    no_swap:
-        push_m j
-        push 1
-        add
-        pop_m j
-        jmp inner
+  no_swap:
+      pushm j
+      push 1
+      add
+      popm j
+      jump inner
 
-    end_inner:
-        push_m i
-        push 1
-        sub
-        pop_m i
-        jmp outer
+  end_inner:
+      pushm i
+      push 1
+      sub
+      popm i
+      jump outer
 
-    print_loop:
-        push_m i
-        push_m len
-        lt
-        jz end
+  print_loop:
+      pushm i
+      pushm len
+      lt
+      beqz end
 
-        push 2047
-        push array
-        push_m i
-        add
-        push_ind
-        pop_ind
+      push 2047
+      push array
+      pushm i
+      add
+      pushi
+      popi
 
-        push 2046
-        push 32
-        pop_ind
+      push 2046
+      push 32
+      popi
 
-        push_m i
-        push 1
-        add
-        pop_m i
-        jmp print_loop
+      pushm i
+      push 1
+      add
+      popm i
+      jump print_loop
 
-    end:
-        halt
+  end:
+      halt
 machine_code: |
   START: 0011
 
@@ -116,75 +116,75 @@ machine_code: |
   0005 - 00000004 - DATA (4)
   0006 - 00000017 - DATA (23)
   0007-0010 - 00000000 - 0
-  0011 - 02000000 - PUSH_M 0
-  0012 - 05000007 - POP_M 7
-  0013 - 02000007 - PUSH_M 7
-  0014 - 1500003D - JZ 61
+  0011 - 02000000 - PUSHM 0
+  0012 - 05000007 - POPM 7
+  0013 - 02000007 - PUSHM 7
+  0014 - 1800003D - BEQZ 61
   0015 - 01000000 - PUSH 0
-  0016 - 05000008 - POP_M 8
-  0017 - 02000008 - PUSH_M 8
-  0018 - 02000007 - PUSH_M 7
+  0016 - 05000008 - POPM 8
+  0017 - 02000008 - PUSHM 8
+  0018 - 02000007 - PUSHM 7
   0019 - 01000001 - PUSH 1
   0020 - 0A000000 - SUB
   0021 - 13000000 - LT
-  0022 - 15000038 - JZ 56
+  0022 - 18000038 - BEQZ 56
   0023 - 01000001 - PUSH 1
-  0024 - 02000008 - PUSH_M 8
+  0024 - 02000008 - PUSHM 8
   0025 - 09000000 - ADD
-  0026 - 03000000 - PUSH_IND
-  0027 - 05000009 - POP_M 9
+  0026 - 03000000 - PUSHI
+  0027 - 05000009 - POPM 9
   0028 - 01000001 - PUSH 1
-  0029 - 02000008 - PUSH_M 8
+  0029 - 02000008 - PUSHM 8
   0030 - 01000001 - PUSH 1
   0031 - 09000000 - ADD
   0032 - 09000000 - ADD
-  0033 - 03000000 - PUSH_IND
-  0034 - 0500000A - POP_M 10
-  0035 - 02000009 - PUSH_M 9
-  0036 - 0200000A - PUSH_M 10
+  0033 - 03000000 - PUSHI
+  0034 - 0500000A - POPM 10
+  0035 - 02000009 - PUSHM 9
+  0036 - 0200000A - PUSHM 10
   0037 - 12000000 - GT
-  0038 - 15000033 - JZ 51
+  0038 - 18000033 - BEQZ 51
   0039 - 01000001 - PUSH 1
-  0040 - 02000008 - PUSH_M 8
+  0040 - 02000008 - PUSHM 8
   0041 - 09000000 - ADD
-  0042 - 0200000A - PUSH_M 10
-  0043 - 06000000 - POP_IND
+  0042 - 0200000A - PUSHM 10
+  0043 - 06000000 - POPI
   0044 - 01000001 - PUSH 1
-  0045 - 02000008 - PUSH_M 8
+  0045 - 02000008 - PUSHM 8
   0046 - 01000001 - PUSH 1
   0047 - 09000000 - ADD
   0048 - 09000000 - ADD
-  0049 - 02000009 - PUSH_M 9
-  0050 - 06000000 - POP_IND
-  0051 - 02000008 - PUSH_M 8
+  0049 - 02000009 - PUSHM 9
+  0050 - 06000000 - POPI
+  0051 - 02000008 - PUSHM 8
   0052 - 01000001 - PUSH 1
   0053 - 09000000 - ADD
-  0054 - 05000008 - POP_M 8
-  0055 - 14000011 - JMP 17
-  0056 - 02000007 - PUSH_M 7
+  0054 - 05000008 - POPM 8
+  0055 - 17000011 - JUMP 17
+  0056 - 02000007 - PUSHM 7
   0057 - 01000001 - PUSH 1
   0058 - 0A000000 - SUB
-  0059 - 05000007 - POP_M 7
-  0060 - 1400000D - JMP 13
-  0061 - 02000007 - PUSH_M 7
-  0062 - 02000000 - PUSH_M 0
+  0059 - 05000007 - POPM 7
+  0060 - 1700000D - JUMP 13
+  0061 - 02000007 - PUSHM 7
+  0062 - 02000000 - PUSHM 0
   0063 - 13000000 - LT
-  0064 - 1500004F - JZ 79
+  0064 - 1800004F - BEQZ 79
   0065 - 010007FF - PUSH 2047
   0066 - 01000001 - PUSH 1
-  0067 - 02000007 - PUSH_M 7
+  0067 - 02000007 - PUSHM 7
   0068 - 09000000 - ADD
-  0069 - 03000000 - PUSH_IND
-  0070 - 06000000 - POP_IND
+  0069 - 03000000 - PUSHI
+  0070 - 06000000 - POPI
   0071 - 010007FE - PUSH 2046
   0072 - 01000020 - PUSH 32
-  0073 - 06000000 - POP_IND
-  0074 - 02000007 - PUSH_M 7
+  0073 - 06000000 - POPI
+  0074 - 02000007 - PUSHM 7
   0075 - 01000001 - PUSH 1
   0076 - 09000000 - ADD
-  0077 - 05000007 - POP_M 7
-  0078 - 1400003D - JMP 61
-  0079 - 1B000000 - HALT
+  0077 - 05000007 - POPM 7
+  0078 - 1700003D - JUMP 61
+  0079 - 21000000 - HALT
   0080-2047 - 00000000 - 0
 
 output: |
@@ -192,723 +192,723 @@ output: |
   Overall quantity of ticks: 3432
   Instructions executed: 720
 out_log: |-
-  Tick: 0003 | pc: 000C | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 0
-  Tick: 0009 | pc: 000D | DS: [6] | EI: 1 | carry: False | Instr: POP_M 7
-  Tick: 0014 | pc: 000E | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
-  Tick: 0020 | pc: 000F | DS: [6] | EI: 1 | carry: False | Instr: JZ 61
+  Tick: 0003 | pc: 000C | DS: [] | EI: 1 | carry: False | Instr: PUSHM 0
+  Tick: 0009 | pc: 000D | DS: [6] | EI: 1 | carry: False | Instr: POPM 7
+  Tick: 0014 | pc: 000E | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
+  Tick: 0020 | pc: 000F | DS: [6] | EI: 1 | carry: False | Instr: BEQZ 61
   Tick: 0024 | pc: 0010 | DS: [] | EI: 1 | carry: False | Instr: PUSH 0
-  Tick: 0028 | pc: 0011 | DS: [0] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 0033 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 0039 | pc: 0013 | DS: [0] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 0028 | pc: 0011 | DS: [0] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 0033 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 0039 | pc: 0013 | DS: [0] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 0045 | pc: 0014 | DS: [0, 6] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0049 | pc: 0015 | DS: [0, 6, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 0053 | pc: 0016 | DS: [0, 5] | EI: 1 | carry: False | Instr: LT
-  Tick: 0057 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: JZ 56
+  Tick: 0057 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 56
   Tick: 0061 | pc: 0018 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0065 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0065 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0071 | pc: 001A | DS: [1, 0] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0075 | pc: 001B | DS: [1] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 0081 | pc: 001C | DS: [42] | EI: 1 | carry: False | Instr: POP_M 9
+  Tick: 0075 | pc: 001B | DS: [1] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 0081 | pc: 001C | DS: [42] | EI: 1 | carry: False | Instr: POPM 9
   Tick: 0086 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0090 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0090 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0096 | pc: 001F | DS: [1, 0] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0100 | pc: 0020 | DS: [1, 0, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 0104 | pc: 0021 | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0108 | pc: 0022 | DS: [2] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 0114 | pc: 0023 | DS: [15] | EI: 1 | carry: False | Instr: POP_M 10
-  Tick: 0119 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 0125 | pc: 0025 | DS: [42] | EI: 1 | carry: False | Instr: PUSH_M 10
+  Tick: 0108 | pc: 0022 | DS: [2] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 0114 | pc: 0023 | DS: [15] | EI: 1 | carry: False | Instr: POPM 10
+  Tick: 0119 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 0125 | pc: 0025 | DS: [42] | EI: 1 | carry: False | Instr: PUSHM 10
   Tick: 0131 | pc: 0026 | DS: [42, 15] | EI: 1 | carry: False | Instr: GT
-  Tick: 0135 | pc: 0027 | DS: [1] | EI: 1 | carry: False | Instr: JZ 51
+  Tick: 0135 | pc: 0027 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 51
   Tick: 0139 | pc: 0028 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0143 | pc: 0029 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0143 | pc: 0029 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0149 | pc: 002A | DS: [1, 0] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0153 | pc: 002B | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 10
-  Tick: 0159 | pc: 002C | DS: [1, 15] | EI: 1 | carry: False | Instr: POP_IND
+  Tick: 0153 | pc: 002B | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 10
+  Tick: 0159 | pc: 002C | DS: [1, 15] | EI: 1 | carry: False | Instr: POPI
   Tick: 0164 | pc: 002D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0168 | pc: 002E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0168 | pc: 002E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0174 | pc: 002F | DS: [1, 0] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0178 | pc: 0030 | DS: [1, 0, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 0182 | pc: 0031 | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0186 | pc: 0032 | DS: [2] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 0192 | pc: 0033 | DS: [2, 42] | EI: 1 | carry: False | Instr: POP_IND
-  Tick: 0197 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0186 | pc: 0032 | DS: [2] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 0192 | pc: 0033 | DS: [2, 42] | EI: 1 | carry: False | Instr: POPI
+  Tick: 0197 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0203 | pc: 0035 | DS: [0] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0207 | pc: 0036 | DS: [0, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0211 | pc: 0037 | DS: [1] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 0216 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JMP 17
-  Tick: 0220 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 0226 | pc: 0013 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 0211 | pc: 0037 | DS: [1] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 0216 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
+  Tick: 0220 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 0226 | pc: 0013 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 0232 | pc: 0014 | DS: [1, 6] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0236 | pc: 0015 | DS: [1, 6, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 0240 | pc: 0016 | DS: [1, 5] | EI: 1 | carry: False | Instr: LT
-  Tick: 0244 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: JZ 56
+  Tick: 0244 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 56
   Tick: 0248 | pc: 0018 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0252 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0252 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0258 | pc: 001A | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0262 | pc: 001B | DS: [2] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 0268 | pc: 001C | DS: [42] | EI: 1 | carry: False | Instr: POP_M 9
+  Tick: 0262 | pc: 001B | DS: [2] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 0268 | pc: 001C | DS: [42] | EI: 1 | carry: False | Instr: POPM 9
   Tick: 0273 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0277 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0277 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0283 | pc: 001F | DS: [1, 1] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0287 | pc: 0020 | DS: [1, 1, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 0291 | pc: 0021 | DS: [1, 2] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0295 | pc: 0022 | DS: [3] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 0301 | pc: 0023 | DS: [8] | EI: 1 | carry: False | Instr: POP_M 10
-  Tick: 0306 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 0312 | pc: 0025 | DS: [42] | EI: 1 | carry: False | Instr: PUSH_M 10
+  Tick: 0295 | pc: 0022 | DS: [3] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 0301 | pc: 0023 | DS: [8] | EI: 1 | carry: False | Instr: POPM 10
+  Tick: 0306 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 0312 | pc: 0025 | DS: [42] | EI: 1 | carry: False | Instr: PUSHM 10
   Tick: 0318 | pc: 0026 | DS: [42, 8] | EI: 1 | carry: False | Instr: GT
-  Tick: 0322 | pc: 0027 | DS: [1] | EI: 1 | carry: False | Instr: JZ 51
+  Tick: 0322 | pc: 0027 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 51
   Tick: 0326 | pc: 0028 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0330 | pc: 0029 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0330 | pc: 0029 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0336 | pc: 002A | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0340 | pc: 002B | DS: [2] | EI: 1 | carry: False | Instr: PUSH_M 10
-  Tick: 0346 | pc: 002C | DS: [2, 8] | EI: 1 | carry: False | Instr: POP_IND
+  Tick: 0340 | pc: 002B | DS: [2] | EI: 1 | carry: False | Instr: PUSHM 10
+  Tick: 0346 | pc: 002C | DS: [2, 8] | EI: 1 | carry: False | Instr: POPI
   Tick: 0351 | pc: 002D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0355 | pc: 002E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0355 | pc: 002E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0361 | pc: 002F | DS: [1, 1] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0365 | pc: 0030 | DS: [1, 1, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 0369 | pc: 0031 | DS: [1, 2] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0373 | pc: 0032 | DS: [3] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 0379 | pc: 0033 | DS: [3, 42] | EI: 1 | carry: False | Instr: POP_IND
-  Tick: 0384 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0373 | pc: 0032 | DS: [3] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 0379 | pc: 0033 | DS: [3, 42] | EI: 1 | carry: False | Instr: POPI
+  Tick: 0384 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0390 | pc: 0035 | DS: [1] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0394 | pc: 0036 | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0398 | pc: 0037 | DS: [2] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 0403 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JMP 17
-  Tick: 0407 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 0413 | pc: 0013 | DS: [2] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 0398 | pc: 0037 | DS: [2] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 0403 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
+  Tick: 0407 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 0413 | pc: 0013 | DS: [2] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 0419 | pc: 0014 | DS: [2, 6] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0423 | pc: 0015 | DS: [2, 6, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 0427 | pc: 0016 | DS: [2, 5] | EI: 1 | carry: False | Instr: LT
-  Tick: 0431 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: JZ 56
+  Tick: 0431 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 56
   Tick: 0435 | pc: 0018 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0439 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0439 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0445 | pc: 001A | DS: [1, 2] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0449 | pc: 001B | DS: [3] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 0455 | pc: 001C | DS: [42] | EI: 1 | carry: False | Instr: POP_M 9
+  Tick: 0449 | pc: 001B | DS: [3] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 0455 | pc: 001C | DS: [42] | EI: 1 | carry: False | Instr: POPM 9
   Tick: 0460 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0464 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0464 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0470 | pc: 001F | DS: [1, 2] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0474 | pc: 0020 | DS: [1, 2, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 0478 | pc: 0021 | DS: [1, 3] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0482 | pc: 0022 | DS: [4] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 0488 | pc: 0023 | DS: [100] | EI: 1 | carry: False | Instr: POP_M 10
-  Tick: 0493 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 0499 | pc: 0025 | DS: [42] | EI: 1 | carry: False | Instr: PUSH_M 10
+  Tick: 0482 | pc: 0022 | DS: [4] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 0488 | pc: 0023 | DS: [100] | EI: 1 | carry: False | Instr: POPM 10
+  Tick: 0493 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 0499 | pc: 0025 | DS: [42] | EI: 1 | carry: False | Instr: PUSHM 10
   Tick: 0505 | pc: 0026 | DS: [42, 100] | EI: 1 | carry: False | Instr: GT
-  Tick: 0509 | pc: 0027 | DS: [0] | EI: 1 | carry: False | Instr: JZ 51
-  Tick: 0513 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0509 | pc: 0027 | DS: [0] | EI: 1 | carry: False | Instr: BEQZ 51
+  Tick: 0513 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0519 | pc: 0035 | DS: [2] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0523 | pc: 0036 | DS: [2, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0527 | pc: 0037 | DS: [3] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 0532 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JMP 17
-  Tick: 0536 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 0542 | pc: 0013 | DS: [3] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 0527 | pc: 0037 | DS: [3] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 0532 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
+  Tick: 0536 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 0542 | pc: 0013 | DS: [3] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 0548 | pc: 0014 | DS: [3, 6] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0552 | pc: 0015 | DS: [3, 6, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 0556 | pc: 0016 | DS: [3, 5] | EI: 1 | carry: False | Instr: LT
-  Tick: 0560 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: JZ 56
+  Tick: 0560 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 56
   Tick: 0564 | pc: 0018 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0568 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0568 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0574 | pc: 001A | DS: [1, 3] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0578 | pc: 001B | DS: [4] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 0584 | pc: 001C | DS: [100] | EI: 1 | carry: False | Instr: POP_M 9
+  Tick: 0578 | pc: 001B | DS: [4] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 0584 | pc: 001C | DS: [100] | EI: 1 | carry: False | Instr: POPM 9
   Tick: 0589 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0593 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0593 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0599 | pc: 001F | DS: [1, 3] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0603 | pc: 0020 | DS: [1, 3, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 0607 | pc: 0021 | DS: [1, 4] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0611 | pc: 0022 | DS: [5] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 0617 | pc: 0023 | DS: [4] | EI: 1 | carry: False | Instr: POP_M 10
-  Tick: 0622 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 0628 | pc: 0025 | DS: [100] | EI: 1 | carry: False | Instr: PUSH_M 10
+  Tick: 0611 | pc: 0022 | DS: [5] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 0617 | pc: 0023 | DS: [4] | EI: 1 | carry: False | Instr: POPM 10
+  Tick: 0622 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 0628 | pc: 0025 | DS: [100] | EI: 1 | carry: False | Instr: PUSHM 10
   Tick: 0634 | pc: 0026 | DS: [100, 4] | EI: 1 | carry: False | Instr: GT
-  Tick: 0638 | pc: 0027 | DS: [1] | EI: 1 | carry: False | Instr: JZ 51
+  Tick: 0638 | pc: 0027 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 51
   Tick: 0642 | pc: 0028 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0646 | pc: 0029 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0646 | pc: 0029 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0652 | pc: 002A | DS: [1, 3] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0656 | pc: 002B | DS: [4] | EI: 1 | carry: False | Instr: PUSH_M 10
-  Tick: 0662 | pc: 002C | DS: [4, 4] | EI: 1 | carry: False | Instr: POP_IND
+  Tick: 0656 | pc: 002B | DS: [4] | EI: 1 | carry: False | Instr: PUSHM 10
+  Tick: 0662 | pc: 002C | DS: [4, 4] | EI: 1 | carry: False | Instr: POPI
   Tick: 0667 | pc: 002D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0671 | pc: 002E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0671 | pc: 002E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0677 | pc: 002F | DS: [1, 3] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0681 | pc: 0030 | DS: [1, 3, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 0685 | pc: 0031 | DS: [1, 4] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0689 | pc: 0032 | DS: [5] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 0695 | pc: 0033 | DS: [5, 100] | EI: 1 | carry: False | Instr: POP_IND
-  Tick: 0700 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0689 | pc: 0032 | DS: [5] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 0695 | pc: 0033 | DS: [5, 100] | EI: 1 | carry: False | Instr: POPI
+  Tick: 0700 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0706 | pc: 0035 | DS: [3] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0710 | pc: 0036 | DS: [3, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0714 | pc: 0037 | DS: [4] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 0719 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JMP 17
-  Tick: 0723 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 0729 | pc: 0013 | DS: [4] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 0714 | pc: 0037 | DS: [4] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 0719 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
+  Tick: 0723 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 0729 | pc: 0013 | DS: [4] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 0735 | pc: 0014 | DS: [4, 6] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0739 | pc: 0015 | DS: [4, 6, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 0743 | pc: 0016 | DS: [4, 5] | EI: 1 | carry: False | Instr: LT
-  Tick: 0747 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: JZ 56
+  Tick: 0747 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 56
   Tick: 0751 | pc: 0018 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0755 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0755 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0761 | pc: 001A | DS: [1, 4] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0765 | pc: 001B | DS: [5] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 0771 | pc: 001C | DS: [100] | EI: 1 | carry: False | Instr: POP_M 9
+  Tick: 0765 | pc: 001B | DS: [5] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 0771 | pc: 001C | DS: [100] | EI: 1 | carry: False | Instr: POPM 9
   Tick: 0776 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0780 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0780 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0786 | pc: 001F | DS: [1, 4] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0790 | pc: 0020 | DS: [1, 4, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 0794 | pc: 0021 | DS: [1, 5] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0798 | pc: 0022 | DS: [6] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 0804 | pc: 0023 | DS: [23] | EI: 1 | carry: False | Instr: POP_M 10
-  Tick: 0809 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 0815 | pc: 0025 | DS: [100] | EI: 1 | carry: False | Instr: PUSH_M 10
+  Tick: 0798 | pc: 0022 | DS: [6] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 0804 | pc: 0023 | DS: [23] | EI: 1 | carry: False | Instr: POPM 10
+  Tick: 0809 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 0815 | pc: 0025 | DS: [100] | EI: 1 | carry: False | Instr: PUSHM 10
   Tick: 0821 | pc: 0026 | DS: [100, 23] | EI: 1 | carry: False | Instr: GT
-  Tick: 0825 | pc: 0027 | DS: [1] | EI: 1 | carry: False | Instr: JZ 51
+  Tick: 0825 | pc: 0027 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 51
   Tick: 0829 | pc: 0028 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0833 | pc: 0029 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0833 | pc: 0029 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0839 | pc: 002A | DS: [1, 4] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0843 | pc: 002B | DS: [5] | EI: 1 | carry: False | Instr: PUSH_M 10
-  Tick: 0849 | pc: 002C | DS: [5, 23] | EI: 1 | carry: False | Instr: POP_IND
+  Tick: 0843 | pc: 002B | DS: [5] | EI: 1 | carry: False | Instr: PUSHM 10
+  Tick: 0849 | pc: 002C | DS: [5, 23] | EI: 1 | carry: False | Instr: POPI
   Tick: 0854 | pc: 002D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 0858 | pc: 002E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0858 | pc: 002E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0864 | pc: 002F | DS: [1, 4] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0868 | pc: 0030 | DS: [1, 4, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 0872 | pc: 0031 | DS: [1, 5] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0876 | pc: 0032 | DS: [6] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 0882 | pc: 0033 | DS: [6, 100] | EI: 1 | carry: False | Instr: POP_IND
-  Tick: 0887 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 0876 | pc: 0032 | DS: [6] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 0882 | pc: 0033 | DS: [6, 100] | EI: 1 | carry: False | Instr: POPI
+  Tick: 0887 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 0893 | pc: 0035 | DS: [4] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0897 | pc: 0036 | DS: [4, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 0901 | pc: 0037 | DS: [5] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 0906 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JMP 17
-  Tick: 0910 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 0916 | pc: 0013 | DS: [5] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 0901 | pc: 0037 | DS: [5] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 0906 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
+  Tick: 0910 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 0916 | pc: 0013 | DS: [5] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 0922 | pc: 0014 | DS: [5, 6] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0926 | pc: 0015 | DS: [5, 6, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 0930 | pc: 0016 | DS: [5, 5] | EI: 1 | carry: False | Instr: LT
-  Tick: 0934 | pc: 0017 | DS: [0] | EI: 1 | carry: False | Instr: JZ 56
-  Tick: 0938 | pc: 0039 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 0934 | pc: 0017 | DS: [0] | EI: 1 | carry: False | Instr: BEQZ 56
+  Tick: 0938 | pc: 0039 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 0944 | pc: 003A | DS: [6] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0948 | pc: 003B | DS: [6, 1] | EI: 1 | carry: False | Instr: SUB
-  Tick: 0952 | pc: 003C | DS: [5] | EI: 1 | carry: False | Instr: POP_M 7
-  Tick: 0957 | pc: 003D | DS: [] | EI: 1 | carry: False | Instr: JMP 13
-  Tick: 0961 | pc: 000E | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
-  Tick: 0967 | pc: 000F | DS: [5] | EI: 1 | carry: False | Instr: JZ 61
+  Tick: 0952 | pc: 003C | DS: [5] | EI: 1 | carry: False | Instr: POPM 7
+  Tick: 0957 | pc: 003D | DS: [] | EI: 1 | carry: False | Instr: JUMP 13
+  Tick: 0961 | pc: 000E | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
+  Tick: 0967 | pc: 000F | DS: [5] | EI: 1 | carry: False | Instr: BEQZ 61
   Tick: 0971 | pc: 0010 | DS: [] | EI: 1 | carry: False | Instr: PUSH 0
-  Tick: 0975 | pc: 0011 | DS: [0] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 0980 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 0986 | pc: 0013 | DS: [0] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 0975 | pc: 0011 | DS: [0] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 0980 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 0986 | pc: 0013 | DS: [0] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 0992 | pc: 0014 | DS: [0, 5] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 0996 | pc: 0015 | DS: [0, 5, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 1000 | pc: 0016 | DS: [0, 4] | EI: 1 | carry: False | Instr: LT
-  Tick: 1004 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: JZ 56
+  Tick: 1004 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 56
   Tick: 1008 | pc: 0018 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1012 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1012 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1018 | pc: 001A | DS: [1, 0] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1022 | pc: 001B | DS: [1] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 1028 | pc: 001C | DS: [15] | EI: 1 | carry: False | Instr: POP_M 9
+  Tick: 1022 | pc: 001B | DS: [1] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 1028 | pc: 001C | DS: [15] | EI: 1 | carry: False | Instr: POPM 9
   Tick: 1033 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1037 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1037 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1043 | pc: 001F | DS: [1, 0] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1047 | pc: 0020 | DS: [1, 0, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 1051 | pc: 0021 | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1055 | pc: 0022 | DS: [2] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 1061 | pc: 0023 | DS: [8] | EI: 1 | carry: False | Instr: POP_M 10
-  Tick: 1066 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 1072 | pc: 0025 | DS: [15] | EI: 1 | carry: False | Instr: PUSH_M 10
+  Tick: 1055 | pc: 0022 | DS: [2] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 1061 | pc: 0023 | DS: [8] | EI: 1 | carry: False | Instr: POPM 10
+  Tick: 1066 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 1072 | pc: 0025 | DS: [15] | EI: 1 | carry: False | Instr: PUSHM 10
   Tick: 1078 | pc: 0026 | DS: [15, 8] | EI: 1 | carry: False | Instr: GT
-  Tick: 1082 | pc: 0027 | DS: [1] | EI: 1 | carry: False | Instr: JZ 51
+  Tick: 1082 | pc: 0027 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 51
   Tick: 1086 | pc: 0028 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1090 | pc: 0029 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1090 | pc: 0029 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1096 | pc: 002A | DS: [1, 0] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1100 | pc: 002B | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 10
-  Tick: 1106 | pc: 002C | DS: [1, 8] | EI: 1 | carry: False | Instr: POP_IND
+  Tick: 1100 | pc: 002B | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 10
+  Tick: 1106 | pc: 002C | DS: [1, 8] | EI: 1 | carry: False | Instr: POPI
   Tick: 1111 | pc: 002D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1115 | pc: 002E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1115 | pc: 002E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1121 | pc: 002F | DS: [1, 0] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1125 | pc: 0030 | DS: [1, 0, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 1129 | pc: 0031 | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1133 | pc: 0032 | DS: [2] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 1139 | pc: 0033 | DS: [2, 15] | EI: 1 | carry: False | Instr: POP_IND
-  Tick: 1144 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1133 | pc: 0032 | DS: [2] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 1139 | pc: 0033 | DS: [2, 15] | EI: 1 | carry: False | Instr: POPI
+  Tick: 1144 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1150 | pc: 0035 | DS: [0] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1154 | pc: 0036 | DS: [0, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1158 | pc: 0037 | DS: [1] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 1163 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JMP 17
-  Tick: 1167 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 1173 | pc: 0013 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 1158 | pc: 0037 | DS: [1] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 1163 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
+  Tick: 1167 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 1173 | pc: 0013 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 1179 | pc: 0014 | DS: [1, 5] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1183 | pc: 0015 | DS: [1, 5, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 1187 | pc: 0016 | DS: [1, 4] | EI: 1 | carry: False | Instr: LT
-  Tick: 1191 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: JZ 56
+  Tick: 1191 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 56
   Tick: 1195 | pc: 0018 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1199 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1199 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1205 | pc: 001A | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1209 | pc: 001B | DS: [2] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 1215 | pc: 001C | DS: [15] | EI: 1 | carry: False | Instr: POP_M 9
+  Tick: 1209 | pc: 001B | DS: [2] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 1215 | pc: 001C | DS: [15] | EI: 1 | carry: False | Instr: POPM 9
   Tick: 1220 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1224 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1224 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1230 | pc: 001F | DS: [1, 1] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1234 | pc: 0020 | DS: [1, 1, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 1238 | pc: 0021 | DS: [1, 2] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1242 | pc: 0022 | DS: [3] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 1248 | pc: 0023 | DS: [42] | EI: 1 | carry: False | Instr: POP_M 10
-  Tick: 1253 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 1259 | pc: 0025 | DS: [15] | EI: 1 | carry: False | Instr: PUSH_M 10
+  Tick: 1242 | pc: 0022 | DS: [3] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 1248 | pc: 0023 | DS: [42] | EI: 1 | carry: False | Instr: POPM 10
+  Tick: 1253 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 1259 | pc: 0025 | DS: [15] | EI: 1 | carry: False | Instr: PUSHM 10
   Tick: 1265 | pc: 0026 | DS: [15, 42] | EI: 1 | carry: False | Instr: GT
-  Tick: 1269 | pc: 0027 | DS: [0] | EI: 1 | carry: False | Instr: JZ 51
-  Tick: 1273 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1269 | pc: 0027 | DS: [0] | EI: 1 | carry: False | Instr: BEQZ 51
+  Tick: 1273 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1279 | pc: 0035 | DS: [1] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1283 | pc: 0036 | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1287 | pc: 0037 | DS: [2] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 1292 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JMP 17
-  Tick: 1296 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 1302 | pc: 0013 | DS: [2] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 1287 | pc: 0037 | DS: [2] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 1292 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
+  Tick: 1296 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 1302 | pc: 0013 | DS: [2] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 1308 | pc: 0014 | DS: [2, 5] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1312 | pc: 0015 | DS: [2, 5, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 1316 | pc: 0016 | DS: [2, 4] | EI: 1 | carry: False | Instr: LT
-  Tick: 1320 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: JZ 56
+  Tick: 1320 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 56
   Tick: 1324 | pc: 0018 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1328 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1328 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1334 | pc: 001A | DS: [1, 2] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1338 | pc: 001B | DS: [3] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 1344 | pc: 001C | DS: [42] | EI: 1 | carry: False | Instr: POP_M 9
+  Tick: 1338 | pc: 001B | DS: [3] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 1344 | pc: 001C | DS: [42] | EI: 1 | carry: False | Instr: POPM 9
   Tick: 1349 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1353 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1353 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1359 | pc: 001F | DS: [1, 2] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1363 | pc: 0020 | DS: [1, 2, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 1367 | pc: 0021 | DS: [1, 3] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1371 | pc: 0022 | DS: [4] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 1377 | pc: 0023 | DS: [4] | EI: 1 | carry: False | Instr: POP_M 10
-  Tick: 1382 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 1388 | pc: 0025 | DS: [42] | EI: 1 | carry: False | Instr: PUSH_M 10
+  Tick: 1371 | pc: 0022 | DS: [4] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 1377 | pc: 0023 | DS: [4] | EI: 1 | carry: False | Instr: POPM 10
+  Tick: 1382 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 1388 | pc: 0025 | DS: [42] | EI: 1 | carry: False | Instr: PUSHM 10
   Tick: 1394 | pc: 0026 | DS: [42, 4] | EI: 1 | carry: False | Instr: GT
-  Tick: 1398 | pc: 0027 | DS: [1] | EI: 1 | carry: False | Instr: JZ 51
+  Tick: 1398 | pc: 0027 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 51
   Tick: 1402 | pc: 0028 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1406 | pc: 0029 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1406 | pc: 0029 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1412 | pc: 002A | DS: [1, 2] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1416 | pc: 002B | DS: [3] | EI: 1 | carry: False | Instr: PUSH_M 10
-  Tick: 1422 | pc: 002C | DS: [3, 4] | EI: 1 | carry: False | Instr: POP_IND
+  Tick: 1416 | pc: 002B | DS: [3] | EI: 1 | carry: False | Instr: PUSHM 10
+  Tick: 1422 | pc: 002C | DS: [3, 4] | EI: 1 | carry: False | Instr: POPI
   Tick: 1427 | pc: 002D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1431 | pc: 002E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1431 | pc: 002E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1437 | pc: 002F | DS: [1, 2] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1441 | pc: 0030 | DS: [1, 2, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 1445 | pc: 0031 | DS: [1, 3] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1449 | pc: 0032 | DS: [4] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 1455 | pc: 0033 | DS: [4, 42] | EI: 1 | carry: False | Instr: POP_IND
-  Tick: 1460 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1449 | pc: 0032 | DS: [4] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 1455 | pc: 0033 | DS: [4, 42] | EI: 1 | carry: False | Instr: POPI
+  Tick: 1460 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1466 | pc: 0035 | DS: [2] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1470 | pc: 0036 | DS: [2, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1474 | pc: 0037 | DS: [3] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 1479 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JMP 17
-  Tick: 1483 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 1489 | pc: 0013 | DS: [3] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 1474 | pc: 0037 | DS: [3] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 1479 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
+  Tick: 1483 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 1489 | pc: 0013 | DS: [3] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 1495 | pc: 0014 | DS: [3, 5] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1499 | pc: 0015 | DS: [3, 5, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 1503 | pc: 0016 | DS: [3, 4] | EI: 1 | carry: False | Instr: LT
-  Tick: 1507 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: JZ 56
+  Tick: 1507 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 56
   Tick: 1511 | pc: 0018 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1515 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1515 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1521 | pc: 001A | DS: [1, 3] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1525 | pc: 001B | DS: [4] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 1531 | pc: 001C | DS: [42] | EI: 1 | carry: False | Instr: POP_M 9
+  Tick: 1525 | pc: 001B | DS: [4] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 1531 | pc: 001C | DS: [42] | EI: 1 | carry: False | Instr: POPM 9
   Tick: 1536 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1540 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1540 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1546 | pc: 001F | DS: [1, 3] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1550 | pc: 0020 | DS: [1, 3, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 1554 | pc: 0021 | DS: [1, 4] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1558 | pc: 0022 | DS: [5] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 1564 | pc: 0023 | DS: [23] | EI: 1 | carry: False | Instr: POP_M 10
-  Tick: 1569 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 1575 | pc: 0025 | DS: [42] | EI: 1 | carry: False | Instr: PUSH_M 10
+  Tick: 1558 | pc: 0022 | DS: [5] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 1564 | pc: 0023 | DS: [23] | EI: 1 | carry: False | Instr: POPM 10
+  Tick: 1569 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 1575 | pc: 0025 | DS: [42] | EI: 1 | carry: False | Instr: PUSHM 10
   Tick: 1581 | pc: 0026 | DS: [42, 23] | EI: 1 | carry: False | Instr: GT
-  Tick: 1585 | pc: 0027 | DS: [1] | EI: 1 | carry: False | Instr: JZ 51
+  Tick: 1585 | pc: 0027 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 51
   Tick: 1589 | pc: 0028 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1593 | pc: 0029 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1593 | pc: 0029 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1599 | pc: 002A | DS: [1, 3] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1603 | pc: 002B | DS: [4] | EI: 1 | carry: False | Instr: PUSH_M 10
-  Tick: 1609 | pc: 002C | DS: [4, 23] | EI: 1 | carry: False | Instr: POP_IND
+  Tick: 1603 | pc: 002B | DS: [4] | EI: 1 | carry: False | Instr: PUSHM 10
+  Tick: 1609 | pc: 002C | DS: [4, 23] | EI: 1 | carry: False | Instr: POPI
   Tick: 1614 | pc: 002D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1618 | pc: 002E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1618 | pc: 002E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1624 | pc: 002F | DS: [1, 3] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1628 | pc: 0030 | DS: [1, 3, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 1632 | pc: 0031 | DS: [1, 4] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1636 | pc: 0032 | DS: [5] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 1642 | pc: 0033 | DS: [5, 42] | EI: 1 | carry: False | Instr: POP_IND
-  Tick: 1647 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1636 | pc: 0032 | DS: [5] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 1642 | pc: 0033 | DS: [5, 42] | EI: 1 | carry: False | Instr: POPI
+  Tick: 1647 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1653 | pc: 0035 | DS: [3] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1657 | pc: 0036 | DS: [3, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1661 | pc: 0037 | DS: [4] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 1666 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JMP 17
-  Tick: 1670 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 1676 | pc: 0013 | DS: [4] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 1661 | pc: 0037 | DS: [4] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 1666 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
+  Tick: 1670 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 1676 | pc: 0013 | DS: [4] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 1682 | pc: 0014 | DS: [4, 5] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1686 | pc: 0015 | DS: [4, 5, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 1690 | pc: 0016 | DS: [4, 4] | EI: 1 | carry: False | Instr: LT
-  Tick: 1694 | pc: 0017 | DS: [0] | EI: 1 | carry: False | Instr: JZ 56
-  Tick: 1698 | pc: 0039 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 1694 | pc: 0017 | DS: [0] | EI: 1 | carry: False | Instr: BEQZ 56
+  Tick: 1698 | pc: 0039 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 1704 | pc: 003A | DS: [5] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1708 | pc: 003B | DS: [5, 1] | EI: 1 | carry: False | Instr: SUB
-  Tick: 1712 | pc: 003C | DS: [4] | EI: 1 | carry: False | Instr: POP_M 7
-  Tick: 1717 | pc: 003D | DS: [] | EI: 1 | carry: False | Instr: JMP 13
-  Tick: 1721 | pc: 000E | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
-  Tick: 1727 | pc: 000F | DS: [4] | EI: 1 | carry: False | Instr: JZ 61
+  Tick: 1712 | pc: 003C | DS: [4] | EI: 1 | carry: False | Instr: POPM 7
+  Tick: 1717 | pc: 003D | DS: [] | EI: 1 | carry: False | Instr: JUMP 13
+  Tick: 1721 | pc: 000E | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
+  Tick: 1727 | pc: 000F | DS: [4] | EI: 1 | carry: False | Instr: BEQZ 61
   Tick: 1731 | pc: 0010 | DS: [] | EI: 1 | carry: False | Instr: PUSH 0
-  Tick: 1735 | pc: 0011 | DS: [0] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 1740 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 1746 | pc: 0013 | DS: [0] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 1735 | pc: 0011 | DS: [0] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 1740 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 1746 | pc: 0013 | DS: [0] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 1752 | pc: 0014 | DS: [0, 4] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1756 | pc: 0015 | DS: [0, 4, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 1760 | pc: 0016 | DS: [0, 3] | EI: 1 | carry: False | Instr: LT
-  Tick: 1764 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: JZ 56
+  Tick: 1764 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 56
   Tick: 1768 | pc: 0018 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1772 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1772 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1778 | pc: 001A | DS: [1, 0] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1782 | pc: 001B | DS: [1] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 1788 | pc: 001C | DS: [8] | EI: 1 | carry: False | Instr: POP_M 9
+  Tick: 1782 | pc: 001B | DS: [1] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 1788 | pc: 001C | DS: [8] | EI: 1 | carry: False | Instr: POPM 9
   Tick: 1793 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1797 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1797 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1803 | pc: 001F | DS: [1, 0] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1807 | pc: 0020 | DS: [1, 0, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 1811 | pc: 0021 | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1815 | pc: 0022 | DS: [2] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 1821 | pc: 0023 | DS: [15] | EI: 1 | carry: False | Instr: POP_M 10
-  Tick: 1826 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 1832 | pc: 0025 | DS: [8] | EI: 1 | carry: False | Instr: PUSH_M 10
+  Tick: 1815 | pc: 0022 | DS: [2] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 1821 | pc: 0023 | DS: [15] | EI: 1 | carry: False | Instr: POPM 10
+  Tick: 1826 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 1832 | pc: 0025 | DS: [8] | EI: 1 | carry: False | Instr: PUSHM 10
   Tick: 1838 | pc: 0026 | DS: [8, 15] | EI: 1 | carry: False | Instr: GT
-  Tick: 1842 | pc: 0027 | DS: [0] | EI: 1 | carry: False | Instr: JZ 51
-  Tick: 1846 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1842 | pc: 0027 | DS: [0] | EI: 1 | carry: False | Instr: BEQZ 51
+  Tick: 1846 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1852 | pc: 0035 | DS: [0] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1856 | pc: 0036 | DS: [0, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1860 | pc: 0037 | DS: [1] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 1865 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JMP 17
-  Tick: 1869 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 1875 | pc: 0013 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 1860 | pc: 0037 | DS: [1] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 1865 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
+  Tick: 1869 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 1875 | pc: 0013 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 1881 | pc: 0014 | DS: [1, 4] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1885 | pc: 0015 | DS: [1, 4, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 1889 | pc: 0016 | DS: [1, 3] | EI: 1 | carry: False | Instr: LT
-  Tick: 1893 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: JZ 56
+  Tick: 1893 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 56
   Tick: 1897 | pc: 0018 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1901 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1901 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1907 | pc: 001A | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1911 | pc: 001B | DS: [2] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 1917 | pc: 001C | DS: [15] | EI: 1 | carry: False | Instr: POP_M 9
+  Tick: 1911 | pc: 001B | DS: [2] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 1917 | pc: 001C | DS: [15] | EI: 1 | carry: False | Instr: POPM 9
   Tick: 1922 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1926 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1926 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1932 | pc: 001F | DS: [1, 1] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 1936 | pc: 0020 | DS: [1, 1, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 1940 | pc: 0021 | DS: [1, 2] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1944 | pc: 0022 | DS: [3] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 1950 | pc: 0023 | DS: [4] | EI: 1 | carry: False | Instr: POP_M 10
-  Tick: 1955 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 1961 | pc: 0025 | DS: [15] | EI: 1 | carry: False | Instr: PUSH_M 10
+  Tick: 1944 | pc: 0022 | DS: [3] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 1950 | pc: 0023 | DS: [4] | EI: 1 | carry: False | Instr: POPM 10
+  Tick: 1955 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 1961 | pc: 0025 | DS: [15] | EI: 1 | carry: False | Instr: PUSHM 10
   Tick: 1967 | pc: 0026 | DS: [15, 4] | EI: 1 | carry: False | Instr: GT
-  Tick: 1971 | pc: 0027 | DS: [1] | EI: 1 | carry: False | Instr: JZ 51
+  Tick: 1971 | pc: 0027 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 51
   Tick: 1975 | pc: 0028 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 1979 | pc: 0029 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 1979 | pc: 0029 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 1985 | pc: 002A | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 1989 | pc: 002B | DS: [2] | EI: 1 | carry: False | Instr: PUSH_M 10
-  Tick: 1995 | pc: 002C | DS: [2, 4] | EI: 1 | carry: False | Instr: POP_IND
+  Tick: 1989 | pc: 002B | DS: [2] | EI: 1 | carry: False | Instr: PUSHM 10
+  Tick: 1995 | pc: 002C | DS: [2, 4] | EI: 1 | carry: False | Instr: POPI
   Tick: 2000 | pc: 002D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 2004 | pc: 002E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 2004 | pc: 002E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 2010 | pc: 002F | DS: [1, 1] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2014 | pc: 0030 | DS: [1, 1, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 2018 | pc: 0031 | DS: [1, 2] | EI: 1 | carry: False | Instr: ADD
-  Tick: 2022 | pc: 0032 | DS: [3] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 2028 | pc: 0033 | DS: [3, 15] | EI: 1 | carry: False | Instr: POP_IND
-  Tick: 2033 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 2022 | pc: 0032 | DS: [3] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 2028 | pc: 0033 | DS: [3, 15] | EI: 1 | carry: False | Instr: POPI
+  Tick: 2033 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 2039 | pc: 0035 | DS: [1] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2043 | pc: 0036 | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 2047 | pc: 0037 | DS: [2] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 2052 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JMP 17
-  Tick: 2056 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 2062 | pc: 0013 | DS: [2] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 2047 | pc: 0037 | DS: [2] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 2052 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
+  Tick: 2056 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 2062 | pc: 0013 | DS: [2] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 2068 | pc: 0014 | DS: [2, 4] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2072 | pc: 0015 | DS: [2, 4, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 2076 | pc: 0016 | DS: [2, 3] | EI: 1 | carry: False | Instr: LT
-  Tick: 2080 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: JZ 56
+  Tick: 2080 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 56
   Tick: 2084 | pc: 0018 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 2088 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 2088 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 2094 | pc: 001A | DS: [1, 2] | EI: 1 | carry: False | Instr: ADD
-  Tick: 2098 | pc: 001B | DS: [3] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 2104 | pc: 001C | DS: [15] | EI: 1 | carry: False | Instr: POP_M 9
+  Tick: 2098 | pc: 001B | DS: [3] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 2104 | pc: 001C | DS: [15] | EI: 1 | carry: False | Instr: POPM 9
   Tick: 2109 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 2113 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 2113 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 2119 | pc: 001F | DS: [1, 2] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2123 | pc: 0020 | DS: [1, 2, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 2127 | pc: 0021 | DS: [1, 3] | EI: 1 | carry: False | Instr: ADD
-  Tick: 2131 | pc: 0022 | DS: [4] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 2137 | pc: 0023 | DS: [23] | EI: 1 | carry: False | Instr: POP_M 10
-  Tick: 2142 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 2148 | pc: 0025 | DS: [15] | EI: 1 | carry: False | Instr: PUSH_M 10
+  Tick: 2131 | pc: 0022 | DS: [4] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 2137 | pc: 0023 | DS: [23] | EI: 1 | carry: False | Instr: POPM 10
+  Tick: 2142 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 2148 | pc: 0025 | DS: [15] | EI: 1 | carry: False | Instr: PUSHM 10
   Tick: 2154 | pc: 0026 | DS: [15, 23] | EI: 1 | carry: False | Instr: GT
-  Tick: 2158 | pc: 0027 | DS: [0] | EI: 1 | carry: False | Instr: JZ 51
-  Tick: 2162 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 2158 | pc: 0027 | DS: [0] | EI: 1 | carry: False | Instr: BEQZ 51
+  Tick: 2162 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 2168 | pc: 0035 | DS: [2] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2172 | pc: 0036 | DS: [2, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 2176 | pc: 0037 | DS: [3] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 2181 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JMP 17
-  Tick: 2185 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 2191 | pc: 0013 | DS: [3] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 2176 | pc: 0037 | DS: [3] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 2181 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
+  Tick: 2185 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 2191 | pc: 0013 | DS: [3] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 2197 | pc: 0014 | DS: [3, 4] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2201 | pc: 0015 | DS: [3, 4, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 2205 | pc: 0016 | DS: [3, 3] | EI: 1 | carry: False | Instr: LT
-  Tick: 2209 | pc: 0017 | DS: [0] | EI: 1 | carry: False | Instr: JZ 56
-  Tick: 2213 | pc: 0039 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 2209 | pc: 0017 | DS: [0] | EI: 1 | carry: False | Instr: BEQZ 56
+  Tick: 2213 | pc: 0039 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 2219 | pc: 003A | DS: [4] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2223 | pc: 003B | DS: [4, 1] | EI: 1 | carry: False | Instr: SUB
-  Tick: 2227 | pc: 003C | DS: [3] | EI: 1 | carry: False | Instr: POP_M 7
-  Tick: 2232 | pc: 003D | DS: [] | EI: 1 | carry: False | Instr: JMP 13
-  Tick: 2236 | pc: 000E | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
-  Tick: 2242 | pc: 000F | DS: [3] | EI: 1 | carry: False | Instr: JZ 61
+  Tick: 2227 | pc: 003C | DS: [3] | EI: 1 | carry: False | Instr: POPM 7
+  Tick: 2232 | pc: 003D | DS: [] | EI: 1 | carry: False | Instr: JUMP 13
+  Tick: 2236 | pc: 000E | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
+  Tick: 2242 | pc: 000F | DS: [3] | EI: 1 | carry: False | Instr: BEQZ 61
   Tick: 2246 | pc: 0010 | DS: [] | EI: 1 | carry: False | Instr: PUSH 0
-  Tick: 2250 | pc: 0011 | DS: [0] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 2255 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 2261 | pc: 0013 | DS: [0] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 2250 | pc: 0011 | DS: [0] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 2255 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 2261 | pc: 0013 | DS: [0] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 2267 | pc: 0014 | DS: [0, 3] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2271 | pc: 0015 | DS: [0, 3, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 2275 | pc: 0016 | DS: [0, 2] | EI: 1 | carry: False | Instr: LT
-  Tick: 2279 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: JZ 56
+  Tick: 2279 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 56
   Tick: 2283 | pc: 0018 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 2287 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 2287 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 2293 | pc: 001A | DS: [1, 0] | EI: 1 | carry: False | Instr: ADD
-  Tick: 2297 | pc: 001B | DS: [1] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 2303 | pc: 001C | DS: [8] | EI: 1 | carry: False | Instr: POP_M 9
+  Tick: 2297 | pc: 001B | DS: [1] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 2303 | pc: 001C | DS: [8] | EI: 1 | carry: False | Instr: POPM 9
   Tick: 2308 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 2312 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 2312 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 2318 | pc: 001F | DS: [1, 0] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2322 | pc: 0020 | DS: [1, 0, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 2326 | pc: 0021 | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 2330 | pc: 0022 | DS: [2] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 2336 | pc: 0023 | DS: [4] | EI: 1 | carry: False | Instr: POP_M 10
-  Tick: 2341 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 2347 | pc: 0025 | DS: [8] | EI: 1 | carry: False | Instr: PUSH_M 10
+  Tick: 2330 | pc: 0022 | DS: [2] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 2336 | pc: 0023 | DS: [4] | EI: 1 | carry: False | Instr: POPM 10
+  Tick: 2341 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 2347 | pc: 0025 | DS: [8] | EI: 1 | carry: False | Instr: PUSHM 10
   Tick: 2353 | pc: 0026 | DS: [8, 4] | EI: 1 | carry: False | Instr: GT
-  Tick: 2357 | pc: 0027 | DS: [1] | EI: 1 | carry: False | Instr: JZ 51
+  Tick: 2357 | pc: 0027 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 51
   Tick: 2361 | pc: 0028 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 2365 | pc: 0029 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 2365 | pc: 0029 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 2371 | pc: 002A | DS: [1, 0] | EI: 1 | carry: False | Instr: ADD
-  Tick: 2375 | pc: 002B | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 10
-  Tick: 2381 | pc: 002C | DS: [1, 4] | EI: 1 | carry: False | Instr: POP_IND
+  Tick: 2375 | pc: 002B | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 10
+  Tick: 2381 | pc: 002C | DS: [1, 4] | EI: 1 | carry: False | Instr: POPI
   Tick: 2386 | pc: 002D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 2390 | pc: 002E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 2390 | pc: 002E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 2396 | pc: 002F | DS: [1, 0] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2400 | pc: 0030 | DS: [1, 0, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 2404 | pc: 0031 | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 2408 | pc: 0032 | DS: [2] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 2414 | pc: 0033 | DS: [2, 8] | EI: 1 | carry: False | Instr: POP_IND
-  Tick: 2419 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 2408 | pc: 0032 | DS: [2] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 2414 | pc: 0033 | DS: [2, 8] | EI: 1 | carry: False | Instr: POPI
+  Tick: 2419 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 2425 | pc: 0035 | DS: [0] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2429 | pc: 0036 | DS: [0, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 2433 | pc: 0037 | DS: [1] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 2438 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JMP 17
-  Tick: 2442 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 2448 | pc: 0013 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 2433 | pc: 0037 | DS: [1] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 2438 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
+  Tick: 2442 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 2448 | pc: 0013 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 2454 | pc: 0014 | DS: [1, 3] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2458 | pc: 0015 | DS: [1, 3, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 2462 | pc: 0016 | DS: [1, 2] | EI: 1 | carry: False | Instr: LT
-  Tick: 2466 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: JZ 56
+  Tick: 2466 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 56
   Tick: 2470 | pc: 0018 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 2474 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 2474 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 2480 | pc: 001A | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 2484 | pc: 001B | DS: [2] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 2490 | pc: 001C | DS: [8] | EI: 1 | carry: False | Instr: POP_M 9
+  Tick: 2484 | pc: 001B | DS: [2] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 2490 | pc: 001C | DS: [8] | EI: 1 | carry: False | Instr: POPM 9
   Tick: 2495 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 2499 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 2499 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 2505 | pc: 001F | DS: [1, 1] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2509 | pc: 0020 | DS: [1, 1, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 2513 | pc: 0021 | DS: [1, 2] | EI: 1 | carry: False | Instr: ADD
-  Tick: 2517 | pc: 0022 | DS: [3] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 2523 | pc: 0023 | DS: [15] | EI: 1 | carry: False | Instr: POP_M 10
-  Tick: 2528 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 2534 | pc: 0025 | DS: [8] | EI: 1 | carry: False | Instr: PUSH_M 10
+  Tick: 2517 | pc: 0022 | DS: [3] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 2523 | pc: 0023 | DS: [15] | EI: 1 | carry: False | Instr: POPM 10
+  Tick: 2528 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 2534 | pc: 0025 | DS: [8] | EI: 1 | carry: False | Instr: PUSHM 10
   Tick: 2540 | pc: 0026 | DS: [8, 15] | EI: 1 | carry: False | Instr: GT
-  Tick: 2544 | pc: 0027 | DS: [0] | EI: 1 | carry: False | Instr: JZ 51
-  Tick: 2548 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 2544 | pc: 0027 | DS: [0] | EI: 1 | carry: False | Instr: BEQZ 51
+  Tick: 2548 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 2554 | pc: 0035 | DS: [1] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2558 | pc: 0036 | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 2562 | pc: 0037 | DS: [2] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 2567 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JMP 17
-  Tick: 2571 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 2577 | pc: 0013 | DS: [2] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 2562 | pc: 0037 | DS: [2] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 2567 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
+  Tick: 2571 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 2577 | pc: 0013 | DS: [2] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 2583 | pc: 0014 | DS: [2, 3] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2587 | pc: 0015 | DS: [2, 3, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 2591 | pc: 0016 | DS: [2, 2] | EI: 1 | carry: False | Instr: LT
-  Tick: 2595 | pc: 0017 | DS: [0] | EI: 1 | carry: False | Instr: JZ 56
-  Tick: 2599 | pc: 0039 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 2595 | pc: 0017 | DS: [0] | EI: 1 | carry: False | Instr: BEQZ 56
+  Tick: 2599 | pc: 0039 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 2605 | pc: 003A | DS: [3] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2609 | pc: 003B | DS: [3, 1] | EI: 1 | carry: False | Instr: SUB
-  Tick: 2613 | pc: 003C | DS: [2] | EI: 1 | carry: False | Instr: POP_M 7
-  Tick: 2618 | pc: 003D | DS: [] | EI: 1 | carry: False | Instr: JMP 13
-  Tick: 2622 | pc: 000E | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
-  Tick: 2628 | pc: 000F | DS: [2] | EI: 1 | carry: False | Instr: JZ 61
+  Tick: 2613 | pc: 003C | DS: [2] | EI: 1 | carry: False | Instr: POPM 7
+  Tick: 2618 | pc: 003D | DS: [] | EI: 1 | carry: False | Instr: JUMP 13
+  Tick: 2622 | pc: 000E | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
+  Tick: 2628 | pc: 000F | DS: [2] | EI: 1 | carry: False | Instr: BEQZ 61
   Tick: 2632 | pc: 0010 | DS: [] | EI: 1 | carry: False | Instr: PUSH 0
-  Tick: 2636 | pc: 0011 | DS: [0] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 2641 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 2647 | pc: 0013 | DS: [0] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 2636 | pc: 0011 | DS: [0] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 2641 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 2647 | pc: 0013 | DS: [0] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 2653 | pc: 0014 | DS: [0, 2] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2657 | pc: 0015 | DS: [0, 2, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 2661 | pc: 0016 | DS: [0, 1] | EI: 1 | carry: False | Instr: LT
-  Tick: 2665 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: JZ 56
+  Tick: 2665 | pc: 0017 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 56
   Tick: 2669 | pc: 0018 | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 2673 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 2673 | pc: 0019 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 2679 | pc: 001A | DS: [1, 0] | EI: 1 | carry: False | Instr: ADD
-  Tick: 2683 | pc: 001B | DS: [1] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 2689 | pc: 001C | DS: [4] | EI: 1 | carry: False | Instr: POP_M 9
+  Tick: 2683 | pc: 001B | DS: [1] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 2689 | pc: 001C | DS: [4] | EI: 1 | carry: False | Instr: POPM 9
   Tick: 2694 | pc: 001D | DS: [] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 2698 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 2698 | pc: 001E | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 2704 | pc: 001F | DS: [1, 0] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2708 | pc: 0020 | DS: [1, 0, 1] | EI: 1 | carry: False | Instr: ADD
   Tick: 2712 | pc: 0021 | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 2716 | pc: 0022 | DS: [2] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 2722 | pc: 0023 | DS: [8] | EI: 1 | carry: False | Instr: POP_M 10
-  Tick: 2727 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 9
-  Tick: 2733 | pc: 0025 | DS: [4] | EI: 1 | carry: False | Instr: PUSH_M 10
+  Tick: 2716 | pc: 0022 | DS: [2] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 2722 | pc: 0023 | DS: [8] | EI: 1 | carry: False | Instr: POPM 10
+  Tick: 2727 | pc: 0024 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 9
+  Tick: 2733 | pc: 0025 | DS: [4] | EI: 1 | carry: False | Instr: PUSHM 10
   Tick: 2739 | pc: 0026 | DS: [4, 8] | EI: 1 | carry: False | Instr: GT
-  Tick: 2743 | pc: 0027 | DS: [0] | EI: 1 | carry: False | Instr: JZ 51
-  Tick: 2747 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
+  Tick: 2743 | pc: 0027 | DS: [0] | EI: 1 | carry: False | Instr: BEQZ 51
+  Tick: 2747 | pc: 0034 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
   Tick: 2753 | pc: 0035 | DS: [0] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2757 | pc: 0036 | DS: [0, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 2761 | pc: 0037 | DS: [1] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 2766 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JMP 17
-  Tick: 2770 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 2776 | pc: 0013 | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 2761 | pc: 0037 | DS: [1] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 2766 | pc: 0038 | DS: [] | EI: 1 | carry: False | Instr: JUMP 17
+  Tick: 2770 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 2776 | pc: 0013 | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 2782 | pc: 0014 | DS: [1, 2] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2786 | pc: 0015 | DS: [1, 2, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 2790 | pc: 0016 | DS: [1, 1] | EI: 1 | carry: False | Instr: LT
-  Tick: 2794 | pc: 0017 | DS: [0] | EI: 1 | carry: False | Instr: JZ 56
-  Tick: 2798 | pc: 0039 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 2794 | pc: 0017 | DS: [0] | EI: 1 | carry: False | Instr: BEQZ 56
+  Tick: 2798 | pc: 0039 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 2804 | pc: 003A | DS: [2] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2808 | pc: 003B | DS: [2, 1] | EI: 1 | carry: False | Instr: SUB
-  Tick: 2812 | pc: 003C | DS: [1] | EI: 1 | carry: False | Instr: POP_M 7
-  Tick: 2817 | pc: 003D | DS: [] | EI: 1 | carry: False | Instr: JMP 13
-  Tick: 2821 | pc: 000E | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
-  Tick: 2827 | pc: 000F | DS: [1] | EI: 1 | carry: False | Instr: JZ 61
+  Tick: 2812 | pc: 003C | DS: [1] | EI: 1 | carry: False | Instr: POPM 7
+  Tick: 2817 | pc: 003D | DS: [] | EI: 1 | carry: False | Instr: JUMP 13
+  Tick: 2821 | pc: 000E | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
+  Tick: 2827 | pc: 000F | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 61
   Tick: 2831 | pc: 0010 | DS: [] | EI: 1 | carry: False | Instr: PUSH 0
-  Tick: 2835 | pc: 0011 | DS: [0] | EI: 1 | carry: False | Instr: POP_M 8
-  Tick: 2840 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 8
-  Tick: 2846 | pc: 0013 | DS: [0] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 2835 | pc: 0011 | DS: [0] | EI: 1 | carry: False | Instr: POPM 8
+  Tick: 2840 | pc: 0012 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 8
+  Tick: 2846 | pc: 0013 | DS: [0] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 2852 | pc: 0014 | DS: [0, 1] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2856 | pc: 0015 | DS: [0, 1, 1] | EI: 1 | carry: False | Instr: SUB
   Tick: 2860 | pc: 0016 | DS: [0, 0] | EI: 1 | carry: False | Instr: LT
-  Tick: 2864 | pc: 0017 | DS: [0] | EI: 1 | carry: False | Instr: JZ 56
-  Tick: 2868 | pc: 0039 | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 2864 | pc: 0017 | DS: [0] | EI: 1 | carry: False | Instr: BEQZ 56
+  Tick: 2868 | pc: 0039 | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 2874 | pc: 003A | DS: [1] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2878 | pc: 003B | DS: [1, 1] | EI: 1 | carry: False | Instr: SUB
-  Tick: 2882 | pc: 003C | DS: [0] | EI: 1 | carry: False | Instr: POP_M 7
-  Tick: 2887 | pc: 003D | DS: [] | EI: 1 | carry: False | Instr: JMP 13
-  Tick: 2891 | pc: 000E | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
-  Tick: 2897 | pc: 000F | DS: [0] | EI: 1 | carry: False | Instr: JZ 61
-  Tick: 2901 | pc: 003E | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
-  Tick: 2907 | pc: 003F | DS: [0] | EI: 1 | carry: False | Instr: PUSH_M 0
+  Tick: 2882 | pc: 003C | DS: [0] | EI: 1 | carry: False | Instr: POPM 7
+  Tick: 2887 | pc: 003D | DS: [] | EI: 1 | carry: False | Instr: JUMP 13
+  Tick: 2891 | pc: 000E | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
+  Tick: 2897 | pc: 000F | DS: [0] | EI: 1 | carry: False | Instr: BEQZ 61
+  Tick: 2901 | pc: 003E | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
+  Tick: 2907 | pc: 003F | DS: [0] | EI: 1 | carry: False | Instr: PUSHM 0
   Tick: 2913 | pc: 0040 | DS: [0, 6] | EI: 1 | carry: False | Instr: LT
-  Tick: 2917 | pc: 0041 | DS: [1] | EI: 1 | carry: False | Instr: JZ 79
+  Tick: 2917 | pc: 0041 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 79
   Tick: 2921 | pc: 0042 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2047
   Tick: 2925 | pc: 0043 | DS: [2047] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 2929 | pc: 0044 | DS: [2047, 1] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 2929 | pc: 0044 | DS: [2047, 1] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 2935 | pc: 0045 | DS: [2047, 1, 0] | EI: 1 | carry: False | Instr: ADD
-  Tick: 2939 | pc: 0046 | DS: [2047, 1] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 2945 | pc: 0047 | DS: [2047, 4] | EI: 1 | carry: False | Instr: POP_IND
+  Tick: 2939 | pc: 0046 | DS: [2047, 1] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 2945 | pc: 0047 | DS: [2047, 4] | EI: 1 | carry: False | Instr: POPI
   Tick: 2950 | pc: 0048 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
   Tick: 2954 | pc: 0049 | DS: [2046] | EI: 1 | carry: False | Instr: PUSH 32
-  Tick: 2958 | pc: 004A | DS: [2046, 32] | EI: 1 | carry: False | Instr: POP_IND
-  Tick: 2963 | pc: 004B | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 2958 | pc: 004A | DS: [2046, 32] | EI: 1 | carry: False | Instr: POPI
+  Tick: 2963 | pc: 004B | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 2969 | pc: 004C | DS: [0] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 2973 | pc: 004D | DS: [0, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 2977 | pc: 004E | DS: [1] | EI: 1 | carry: False | Instr: POP_M 7
-  Tick: 2982 | pc: 004F | DS: [] | EI: 1 | carry: False | Instr: JMP 61
-  Tick: 2986 | pc: 003E | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
-  Tick: 2992 | pc: 003F | DS: [1] | EI: 1 | carry: False | Instr: PUSH_M 0
+  Tick: 2977 | pc: 004E | DS: [1] | EI: 1 | carry: False | Instr: POPM 7
+  Tick: 2982 | pc: 004F | DS: [] | EI: 1 | carry: False | Instr: JUMP 61
+  Tick: 2986 | pc: 003E | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
+  Tick: 2992 | pc: 003F | DS: [1] | EI: 1 | carry: False | Instr: PUSHM 0
   Tick: 2998 | pc: 0040 | DS: [1, 6] | EI: 1 | carry: False | Instr: LT
-  Tick: 3002 | pc: 0041 | DS: [1] | EI: 1 | carry: False | Instr: JZ 79
+  Tick: 3002 | pc: 0041 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 79
   Tick: 3006 | pc: 0042 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2047
   Tick: 3010 | pc: 0043 | DS: [2047] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 3014 | pc: 0044 | DS: [2047, 1] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 3014 | pc: 0044 | DS: [2047, 1] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 3020 | pc: 0045 | DS: [2047, 1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 3024 | pc: 0046 | DS: [2047, 2] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 3030 | pc: 0047 | DS: [2047, 8] | EI: 1 | carry: False | Instr: POP_IND
+  Tick: 3024 | pc: 0046 | DS: [2047, 2] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 3030 | pc: 0047 | DS: [2047, 8] | EI: 1 | carry: False | Instr: POPI
   Tick: 3035 | pc: 0048 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
   Tick: 3039 | pc: 0049 | DS: [2046] | EI: 1 | carry: False | Instr: PUSH 32
-  Tick: 3043 | pc: 004A | DS: [2046, 32] | EI: 1 | carry: False | Instr: POP_IND
-  Tick: 3048 | pc: 004B | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 3043 | pc: 004A | DS: [2046, 32] | EI: 1 | carry: False | Instr: POPI
+  Tick: 3048 | pc: 004B | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 3054 | pc: 004C | DS: [1] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 3058 | pc: 004D | DS: [1, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 3062 | pc: 004E | DS: [2] | EI: 1 | carry: False | Instr: POP_M 7
-  Tick: 3067 | pc: 004F | DS: [] | EI: 1 | carry: False | Instr: JMP 61
-  Tick: 3071 | pc: 003E | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
-  Tick: 3077 | pc: 003F | DS: [2] | EI: 1 | carry: False | Instr: PUSH_M 0
+  Tick: 3062 | pc: 004E | DS: [2] | EI: 1 | carry: False | Instr: POPM 7
+  Tick: 3067 | pc: 004F | DS: [] | EI: 1 | carry: False | Instr: JUMP 61
+  Tick: 3071 | pc: 003E | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
+  Tick: 3077 | pc: 003F | DS: [2] | EI: 1 | carry: False | Instr: PUSHM 0
   Tick: 3083 | pc: 0040 | DS: [2, 6] | EI: 1 | carry: False | Instr: LT
-  Tick: 3087 | pc: 0041 | DS: [1] | EI: 1 | carry: False | Instr: JZ 79
+  Tick: 3087 | pc: 0041 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 79
   Tick: 3091 | pc: 0042 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2047
   Tick: 3095 | pc: 0043 | DS: [2047] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 3099 | pc: 0044 | DS: [2047, 1] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 3099 | pc: 0044 | DS: [2047, 1] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 3105 | pc: 0045 | DS: [2047, 1, 2] | EI: 1 | carry: False | Instr: ADD
-  Tick: 3109 | pc: 0046 | DS: [2047, 3] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 3115 | pc: 0047 | DS: [2047, 15] | EI: 1 | carry: False | Instr: POP_IND
+  Tick: 3109 | pc: 0046 | DS: [2047, 3] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 3115 | pc: 0047 | DS: [2047, 15] | EI: 1 | carry: False | Instr: POPI
   Tick: 3120 | pc: 0048 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
   Tick: 3124 | pc: 0049 | DS: [2046] | EI: 1 | carry: False | Instr: PUSH 32
-  Tick: 3128 | pc: 004A | DS: [2046, 32] | EI: 1 | carry: False | Instr: POP_IND
-  Tick: 3133 | pc: 004B | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 3128 | pc: 004A | DS: [2046, 32] | EI: 1 | carry: False | Instr: POPI
+  Tick: 3133 | pc: 004B | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 3139 | pc: 004C | DS: [2] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 3143 | pc: 004D | DS: [2, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 3147 | pc: 004E | DS: [3] | EI: 1 | carry: False | Instr: POP_M 7
-  Tick: 3152 | pc: 004F | DS: [] | EI: 1 | carry: False | Instr: JMP 61
-  Tick: 3156 | pc: 003E | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
-  Tick: 3162 | pc: 003F | DS: [3] | EI: 1 | carry: False | Instr: PUSH_M 0
+  Tick: 3147 | pc: 004E | DS: [3] | EI: 1 | carry: False | Instr: POPM 7
+  Tick: 3152 | pc: 004F | DS: [] | EI: 1 | carry: False | Instr: JUMP 61
+  Tick: 3156 | pc: 003E | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
+  Tick: 3162 | pc: 003F | DS: [3] | EI: 1 | carry: False | Instr: PUSHM 0
   Tick: 3168 | pc: 0040 | DS: [3, 6] | EI: 1 | carry: False | Instr: LT
-  Tick: 3172 | pc: 0041 | DS: [1] | EI: 1 | carry: False | Instr: JZ 79
+  Tick: 3172 | pc: 0041 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 79
   Tick: 3176 | pc: 0042 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2047
   Tick: 3180 | pc: 0043 | DS: [2047] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 3184 | pc: 0044 | DS: [2047, 1] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 3184 | pc: 0044 | DS: [2047, 1] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 3190 | pc: 0045 | DS: [2047, 1, 3] | EI: 1 | carry: False | Instr: ADD
-  Tick: 3194 | pc: 0046 | DS: [2047, 4] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 3200 | pc: 0047 | DS: [2047, 23] | EI: 1 | carry: False | Instr: POP_IND
+  Tick: 3194 | pc: 0046 | DS: [2047, 4] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 3200 | pc: 0047 | DS: [2047, 23] | EI: 1 | carry: False | Instr: POPI
   Tick: 3205 | pc: 0048 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
   Tick: 3209 | pc: 0049 | DS: [2046] | EI: 1 | carry: False | Instr: PUSH 32
-  Tick: 3213 | pc: 004A | DS: [2046, 32] | EI: 1 | carry: False | Instr: POP_IND
-  Tick: 3218 | pc: 004B | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 3213 | pc: 004A | DS: [2046, 32] | EI: 1 | carry: False | Instr: POPI
+  Tick: 3218 | pc: 004B | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 3224 | pc: 004C | DS: [3] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 3228 | pc: 004D | DS: [3, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 3232 | pc: 004E | DS: [4] | EI: 1 | carry: False | Instr: POP_M 7
-  Tick: 3237 | pc: 004F | DS: [] | EI: 1 | carry: False | Instr: JMP 61
-  Tick: 3241 | pc: 003E | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
-  Tick: 3247 | pc: 003F | DS: [4] | EI: 1 | carry: False | Instr: PUSH_M 0
+  Tick: 3232 | pc: 004E | DS: [4] | EI: 1 | carry: False | Instr: POPM 7
+  Tick: 3237 | pc: 004F | DS: [] | EI: 1 | carry: False | Instr: JUMP 61
+  Tick: 3241 | pc: 003E | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
+  Tick: 3247 | pc: 003F | DS: [4] | EI: 1 | carry: False | Instr: PUSHM 0
   Tick: 3253 | pc: 0040 | DS: [4, 6] | EI: 1 | carry: False | Instr: LT
-  Tick: 3257 | pc: 0041 | DS: [1] | EI: 1 | carry: False | Instr: JZ 79
+  Tick: 3257 | pc: 0041 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 79
   Tick: 3261 | pc: 0042 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2047
   Tick: 3265 | pc: 0043 | DS: [2047] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 3269 | pc: 0044 | DS: [2047, 1] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 3269 | pc: 0044 | DS: [2047, 1] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 3275 | pc: 0045 | DS: [2047, 1, 4] | EI: 1 | carry: False | Instr: ADD
-  Tick: 3279 | pc: 0046 | DS: [2047, 5] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 3285 | pc: 0047 | DS: [2047, 42] | EI: 1 | carry: False | Instr: POP_IND
+  Tick: 3279 | pc: 0046 | DS: [2047, 5] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 3285 | pc: 0047 | DS: [2047, 42] | EI: 1 | carry: False | Instr: POPI
   Tick: 3290 | pc: 0048 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
   Tick: 3294 | pc: 0049 | DS: [2046] | EI: 1 | carry: False | Instr: PUSH 32
-  Tick: 3298 | pc: 004A | DS: [2046, 32] | EI: 1 | carry: False | Instr: POP_IND
-  Tick: 3303 | pc: 004B | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 3298 | pc: 004A | DS: [2046, 32] | EI: 1 | carry: False | Instr: POPI
+  Tick: 3303 | pc: 004B | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 3309 | pc: 004C | DS: [4] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 3313 | pc: 004D | DS: [4, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 3317 | pc: 004E | DS: [5] | EI: 1 | carry: False | Instr: POP_M 7
-  Tick: 3322 | pc: 004F | DS: [] | EI: 1 | carry: False | Instr: JMP 61
-  Tick: 3326 | pc: 003E | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
-  Tick: 3332 | pc: 003F | DS: [5] | EI: 1 | carry: False | Instr: PUSH_M 0
+  Tick: 3317 | pc: 004E | DS: [5] | EI: 1 | carry: False | Instr: POPM 7
+  Tick: 3322 | pc: 004F | DS: [] | EI: 1 | carry: False | Instr: JUMP 61
+  Tick: 3326 | pc: 003E | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
+  Tick: 3332 | pc: 003F | DS: [5] | EI: 1 | carry: False | Instr: PUSHM 0
   Tick: 3338 | pc: 0040 | DS: [5, 6] | EI: 1 | carry: False | Instr: LT
-  Tick: 3342 | pc: 0041 | DS: [1] | EI: 1 | carry: False | Instr: JZ 79
+  Tick: 3342 | pc: 0041 | DS: [1] | EI: 1 | carry: False | Instr: BEQZ 79
   Tick: 3346 | pc: 0042 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2047
   Tick: 3350 | pc: 0043 | DS: [2047] | EI: 1 | carry: False | Instr: PUSH 1
-  Tick: 3354 | pc: 0044 | DS: [2047, 1] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 3354 | pc: 0044 | DS: [2047, 1] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 3360 | pc: 0045 | DS: [2047, 1, 5] | EI: 1 | carry: False | Instr: ADD
-  Tick: 3364 | pc: 0046 | DS: [2047, 6] | EI: 1 | carry: False | Instr: PUSH_IND
-  Tick: 3370 | pc: 0047 | DS: [2047, 100] | EI: 1 | carry: False | Instr: POP_IND
+  Tick: 3364 | pc: 0046 | DS: [2047, 6] | EI: 1 | carry: False | Instr: PUSHI
+  Tick: 3370 | pc: 0047 | DS: [2047, 100] | EI: 1 | carry: False | Instr: POPI
   Tick: 3375 | pc: 0048 | DS: [] | EI: 1 | carry: False | Instr: PUSH 2046
   Tick: 3379 | pc: 0049 | DS: [2046] | EI: 1 | carry: False | Instr: PUSH 32
-  Tick: 3383 | pc: 004A | DS: [2046, 32] | EI: 1 | carry: False | Instr: POP_IND
-  Tick: 3388 | pc: 004B | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
+  Tick: 3383 | pc: 004A | DS: [2046, 32] | EI: 1 | carry: False | Instr: POPI
+  Tick: 3388 | pc: 004B | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
   Tick: 3394 | pc: 004C | DS: [5] | EI: 1 | carry: False | Instr: PUSH 1
   Tick: 3398 | pc: 004D | DS: [5, 1] | EI: 1 | carry: False | Instr: ADD
-  Tick: 3402 | pc: 004E | DS: [6] | EI: 1 | carry: False | Instr: POP_M 7
-  Tick: 3407 | pc: 004F | DS: [] | EI: 1 | carry: False | Instr: JMP 61
-  Tick: 3411 | pc: 003E | DS: [] | EI: 1 | carry: False | Instr: PUSH_M 7
-  Tick: 3417 | pc: 003F | DS: [6] | EI: 1 | carry: False | Instr: PUSH_M 0
+  Tick: 3402 | pc: 004E | DS: [6] | EI: 1 | carry: False | Instr: POPM 7
+  Tick: 3407 | pc: 004F | DS: [] | EI: 1 | carry: False | Instr: JUMP 61
+  Tick: 3411 | pc: 003E | DS: [] | EI: 1 | carry: False | Instr: PUSHM 7
+  Tick: 3417 | pc: 003F | DS: [6] | EI: 1 | carry: False | Instr: PUSHM 0
   Tick: 3423 | pc: 0040 | DS: [6, 6] | EI: 1 | carry: False | Instr: LT
-  Tick: 3427 | pc: 0041 | DS: [0] | EI: 1 | carry: False | Instr: JZ 79
+  Tick: 3427 | pc: 0041 | DS: [0] | EI: 1 | carry: False | Instr: BEQZ 79
   Tick: 3431 | pc: 0050 | DS: [] | EI: 1 | carry: False | Instr: HALT

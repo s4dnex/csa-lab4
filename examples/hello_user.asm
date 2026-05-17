@@ -1,7 +1,7 @@
 .text
 .org 0x0
 trap_vector:
-    jmp process_trap
+    jump process_trap
 
 .data
 question:       .str "What is your name? "
@@ -17,34 +17,34 @@ name:           .word 0
 .text
 .org 0x150
 process_trap:
-    push_m 2045
-    pop_m current_symb
+    pushm 2045
+    popm current_symb
 
-    push_m current_symb
+    pushm current_symb
     push 10
     sub
-    jz trap_end
+    beqz trap_end
 
-    push_m current_symb
+    pushm current_symb
     push 0
     sub
-    jz trap_end
+    beqz trap_end
 
     push name
-    push_m name_len
+    pushm name_len
     add
-    push_m current_symb
-    pop_ind
+    pushm current_symb
+    popi
 
-    push_m name_len
+    pushm name_len
     push 1
     add
-    pop_m name_len
+    popm name_len
     iret
 
 trap_end:
     push 1
-    pop_m input_done
+    popm input_done
     iret
 
 _start:
@@ -52,14 +52,14 @@ _start:
     call print_str
 
 wait_input:
-    push_m input_done
-    jz wait_input
+    pushm input_done
+    beqz wait_input
 
     push hello_str
     call print_str
 
     push name
-    push_m name_len
+    pushm name_len
     call print_raw_str
 
     push end_str
@@ -68,49 +68,49 @@ wait_input:
     halt
 
 print_str:
-    pop_m str_ptr
+    popm str_ptr
 
 print_str_loop:
-    push_m str_ptr
-    push_ind
-    jz print_end
+    pushm str_ptr
+    pushi
+    beqz print_end
 
     push 2046
-    push_m str_ptr
-    push_ind
-    pop_ind
+    pushm str_ptr
+    pushi
+    popi
 
-    push_m str_ptr
+    pushm str_ptr
     push 1
     add
-    pop_m str_ptr
+    popm str_ptr
 
-    jmp print_str_loop
+    jump print_str_loop
 
 print_raw_str:
-    pop_m name_len
-    pop_m str_ptr
+    popm name_len
+    popm str_ptr
 
 print_raw_loop:
-    push_m name_len
-    jz print_end
+    pushm name_len
+    beqz print_end
 
     push 2046
-    push_m str_ptr
-    push_ind
-    pop_ind
+    pushm str_ptr
+    pushi
+    popi
 
-    push_m str_ptr
+    pushm str_ptr
     push 1
     add
-    pop_m str_ptr
+    popm str_ptr
 
-    push_m name_len
+    pushm name_len
     push 1
     sub
-    pop_m name_len
+    popm name_len
 
-    jmp print_raw_loop
+    jump print_raw_loop
 
 print_end:
     ret

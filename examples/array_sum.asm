@@ -11,62 +11,62 @@ i:      .word 0
 .text
 _start:
 loop:
-    push_m i
-    push_m len
+    pushm i
+    pushm len
     lt
-    jz print_sum
+    beqz print_sum
 
     push 2047
     push array
-    push_m i
+    pushm i
     add
-    push_ind
-    pop_ind
+    pushi
+    popi
 
-    push_m i
-    push_m len
+    pushm i
+    pushm len
     push 1
     sub
     cmp
     call print_space
-    jnz print_equals
+    bnez print_equals
 
     push 2046
     push 43
-    pop_ind
+    popi
     call print_space
 
-    jmp after_sep
+    jump after_sep
 
 print_space:
     push 2046
     push 32
-    pop_ind
+    popi
     ret
 
 print_equals:
     push 2046
     push 61
-    pop_ind
+    popi
     call print_space
 
 after_sep:
-    push_m sum
+    pushm sum
     push array
-    push_m i
+    pushm i
     add
-    push_ind
+    pushi
     add
-    pop_m sum
+    popm sum
 
-    push_m i
+    pushm i
     push 1
     add
-    pop_m i
-    jmp loop
+    popm i
+    jump loop
 
 print_sum:
     push 2047
-    push_m sum
-    pop_ind
+    pushm sum
+    popi
     halt
