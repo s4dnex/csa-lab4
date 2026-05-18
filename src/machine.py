@@ -45,7 +45,7 @@ class DataPath:
             return val if val is not None else 0
         if 0 <= addr < self.memory_size:
             return self.memory[addr]
-        raise IndexError(f"Memory read fault: address {addr} out of bounds")
+        raise IndexError(f"Memory Read: Address {addr} out of bounds")
 
     def memory_write(self, addr: int, val: int) -> None:
         if addr == self.SYM_OUTPUT_ADDR:
@@ -55,16 +55,16 @@ class DataPath:
         elif 0 <= addr < self.memory_size:
             self.memory[addr] = val
         else:
-            raise IndexError(f"Memory write fault: address {addr} out of bounds")
+            raise IndexError(f"Memory Write: Address {addr} out of bounds")
 
     def push(self, val: int) -> None:
         if len(self.data_stack) >= self.MAX_STACK_SIZE:
-            raise OverflowError("Data Stack overflow")
+            raise OverflowError("Data Stack: Overflow")
         self.data_stack.append(val)
 
     def pop(self) -> int:
         if not self.data_stack:
-            raise IndexError("Data Stack underflow")
+            raise IndexError("Data Stack: Underflow")
         return self.data_stack.pop()
 
     def alu_op(self, opcode: Opcode) -> None:
@@ -114,13 +114,13 @@ class DataPath:
 
         elif opcode == Opcode.DIV:
             if b == 0:
-                raise ZeroDivisionError("DIV by zero")
+                raise ZeroDivisionError("Division by zero")
             self.overflow = a == -2147483648 and b == -1
             self.push(to_signed32(int(a / b)))
 
         elif opcode == Opcode.MOD:
             if b == 0:
-                raise ZeroDivisionError("MOD by zero")
+                raise ZeroDivisionError("Division by zero")
             self.push(a % b)
 
         elif opcode == Opcode.CMP:
@@ -184,7 +184,7 @@ class ControlUnit:
 
         instruction = Instruction.decode(word)
         if not isinstance(instruction, Instruction):
-            raise ValueError(f"Unknown instruction: {word:#010x}")
+            raise ValueError(f"Unknown Instruction: {word:#010x}")
         return instruction.opcode, instruction.operand
 
     def execute_instruction(self, opcode: Opcode, operand: int) -> None:
@@ -320,7 +320,7 @@ class ControlUnit:
 
             while not self.halted:
                 if self.ticks > MAX_TICKS:
-                    logger.error(f"SIMULATION STOPPED: Exceeded number of ticks ({MAX_TICKS})")
+                    logger.error(f"Simulation Stopped: Limit of ticks is reached ({MAX_TICKS})")
                     break
 
                 self.check_interrupt()
@@ -336,7 +336,7 @@ class ControlUnit:
                 self.execute_instruction(opcode, operand)
 
         except Exception as e:
-            logger.error(f"UNEXPECTED ERROR: {e}. Tick = {self.ticks}, PC = {self.pc:#06x}")
+            logger.error(f"Unexpected Error: {e}. Tick = {self.ticks}, PC = {self.pc:#06x}")
 
     def log(self, message: str) -> None:
         isr_str = "ISR" if not self.ei else "---"

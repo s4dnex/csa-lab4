@@ -1,8 +1,11 @@
 import argparse
+import logging
 import re
 import sys
 
 from isa import BinaryManager, Instruction, Opcode
+
+logger = logging.getLogger("translator")
 
 MEMORY_SIZE = 2048
 
