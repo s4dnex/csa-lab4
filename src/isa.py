@@ -72,7 +72,7 @@ class Instruction:
 
     @classmethod
     def decode(cls, machine_word: int) -> "Instruction | int":
-        """Decode a 32-bit word into an Instruction or return raw data if unknown."""
+        """Decode a 32-bit word into an Instruction or return raw machine word if unknown."""
         opcode_raw = (machine_word >> 24) & 0xFF
         operand = machine_word & 0xFFFFFF
         if operand & 0x800000:
@@ -83,10 +83,10 @@ class Instruction:
             return machine_word
 
 
-class BinaryManager:
+class DumpWriter:
     @staticmethod
-    def write_binary(bin_filepath: str, memory: list[int], start_address: int) -> None:
-        """Write binary file and a text log alongside it."""
+    def write_dump(bin_filepath: str, memory: list[int], start_address: int) -> None:
+        """Write binary file and text log alongside it."""
 
         def flush_zeros(zero_end: int) -> None:
             if zero_end == zero_start:
@@ -98,7 +98,7 @@ class BinaryManager:
         zero_start = None
 
         with open(bin_filepath, "wb") as bin_f, open(log_filepath, "w", encoding="utf-8") as log_f:
-            bin_f.write(struct.pack(">i", start_address))
+            bin_f.write(struct.pack(">i", start_address))  # Big-Endian, 32 bits
             log_f.write(f"START: {start_address:04d}\n\n")
 
             for addr, word in enumerate(memory):
@@ -132,7 +132,7 @@ class BinaryManager:
 
     @staticmethod
     def read_binary(filepath: str) -> tuple[list[int], int]:
-        """Read .bin: first 4 bytes are start address, then memory words."""
+        """Read binary file where first 4 bytes are start address, other - memory words."""
         memory: list[int] = []
         start_address = 0
         with open(filepath, "rb") as f:

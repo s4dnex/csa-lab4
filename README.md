@@ -57,7 +57,7 @@
 
 **Literals:**
 
-- Numbers: decimal, hexadecimal (`0x…`), octal (`0o…`), binary (`0b…`). A literal may appear directly in an instruction operand (24-bit signed range: −8,388,608 … +8,388,607). Values outside this range must be placed in the data section with the `.word` directive.
+- Numbers: decimal, hexadecimal (`0x…`), octal (`0o…`), binary (`0b…`). A literal may appear directly in an instruction operand (24-bit signed range: [−8_388_608; +8_388_607]). Values outside this range must be placed in the data section with the `.word` directive.
 
 - Strings: stored only in data section via `.str` in C style. One machine word per character (`ord(c)`), terminated by a zero word (`\0`). Length is not stored, traversal stops at the zero word.
 
@@ -154,7 +154,7 @@ Von Neumann architecture - a single address space for instructions and data.
 
 - **I/O:** memory-mapped I/O (cell addresses 2045–2047). Access via `PUSHM` / `PUSHI` / `POPM` / `POPI`.
 
-- **Interrupts:** a single `input_port` cell holds the incoming character. Each **tick**, the interrupt schedule (`trap_schedule`) is checked: if the scheduled tick has arrived and the **port is empty**, the character is written to `input_port` and `irq` is set. If the port is busy, the new character is **dropped**. The handler runs **between instructions**: before fetch, `irq && ei` is tested - if true, `PC` is pushed to the Return Stack, `PC ← 0x0`, `ei ← 0` and `irq ← 0`. `IRET` restores `PC` and sets `ei ← 1`. `input_port` is cleared when read at `INPUT_ADDR`.
+- **Interrupts:** a single `input_port` cell holds the incoming character. Each **tick**, the interrupt schedule is checked: if the scheduled tick has arrived and the **port is empty**, the character is written to `input_port` and `irq` is set. If the port is busy, the new character is **dropped**. The handler runs **between instructions**: before fetch, `irq && ei` is tested - if true, `PC` is pushed to the Return Stack, `PC ← 0x0`, `ei ← 0` and `irq ← 0`. `IRET` restores `PC` and sets `ei ← 1`. `input_port` is cleared when read at `INPUT_ADDR`.
 
 - **Nested interrupts** are not allowed (`ei = 0`). If a character arrives while `ei = 0` but the port is already empty (the handler has read it), the character is placed in `input_port` and `irq` is set. After `IRET`, it will be serviced again because interrupts are re-enabled. If the port is still busy, the character is lost.
 
@@ -175,7 +175,7 @@ Von Neumann architecture - a single address space for instructions and data.
 Each instruction is one 32-bit machine word:
 
 ```inst
- 31      24 23                   0
+31       24 23                    0
 +----------+----------------------+
 |  opcode  |       operand        |
 | (8 bits) |      (24 bits)       |
@@ -238,7 +238,7 @@ Full instruction cycle = 3 fetch cycles + n execute cycles.
 ### Command-Line Interface
 
 ```sh
-python3 src/translator.py <source.asm> <output.bin>
+python src\translator.py <source.asm> <output.bin>
 ```
 
 Produces two files:
@@ -250,25 +250,44 @@ Produces two files:
 Example:
 
 ```sh
-python3 src/translator.py examples/hello_world.asm out/hello.bin
+python src\translator.py examples\hello_world.asm out\hello_world.bin
 ```
 
 Example dump:
 
 ```text
-START: 0001
+START: 0015
 
-0000 - 17000002 - JUMP 2
-0001 - 17000001 - JUMP 1
-0002 - 020007FD - PUSHM 2045
-0003 - 07000000 - DUP
-0004 - 01000000 - PUSH 0
-0005 - 11000000 - CMP
-0006 - 18000008 - BEQZ 8
-0007 - 21000000 - HALT
-0008 - 050007FE - POPM 2046
-0009 - 20000000 - IRET
-0010-2047 - 00000000 - 0
+0000 - 00000048 - DATA (72)
+0001 - 00000065 - DATA (101)
+0002 - 0000006C - DATA (108)
+0003 - 0000006C - DATA (108)
+0004 - 0000006F - DATA (111)
+0005 - 0000002C - DATA (44)
+0006 - 00000020 - DATA (32)
+0007 - 00000057 - DATA (87)
+0008 - 0000006F - DATA (111)
+0009 - 00000072 - DATA (114)
+0010 - 0000006C - DATA (108)
+0011 - 00000064 - DATA (100)
+0012 - 00000021 - DATA (33)
+0013-0014 - 00000000 - 0
+0015 - 01000000 - PUSH 0
+0016 - 0500000E - POPM 14
+0017 - 0200000E - PUSHM 14
+0018 - 03000000 - PUSHI
+0019 - 1800001D - BEQZ 29
+0020 - 010007FE - PUSH 2046
+0021 - 0200000E - PUSHM 14
+0022 - 03000000 - PUSHI
+0023 - 06000000 - POPI
+0024 - 0200000E - PUSHM 14
+0025 - 01000001 - PUSH 1
+0026 - 09000000 - ADD
+0027 - 0500000E - POPM 14
+0028 - 17000011 - JUMP 17
+0029 - 21000000 - HALT
+0030-2047 - 00000000 - 0
 ```
 
 ### Translation Stages
@@ -363,10 +382,10 @@ Between instructions, `irq && ei` is checked. If true, **one additional cycle** 
 
 ```text
 <name>.asm
-       |  python3 src/translator.py <name.asm> <output.bin>
+       |  python src\translator.py <name.asm> <output.bin>
        V
 <name>.bin + <name>_dump.log
-       |  python3 src/machine.py <binary.bin> [input.txt]
+       |  python src\machine.py <binary.bin> [input.txt]
        V
 stdout: tick log + output
 ```
@@ -374,38 +393,43 @@ stdout: tick log + output
 **Example:**
 
 ```sh
-python3 src/translator.py examples/hello_world.asm out/hello.bin
+python src\translator.py examples\hello_world.asm out\hello_world.bin
+python src\machine.py out\hello_world.bin
 
-python3 src/machine.py out/hello.bin
-Tick: 0003 | pc: 0010 | DS: [] | EI: 1 | carry: False | Instr: PUSH 0
-Tick: 0007 | pc: 0011 | DS: [0] | EI: 1 | carry: False | Instr: POPM 14
+ ISR  | Tick  |  PC  |      Data Stack      | EI | C | V | 
+ ---  | 00003 | 0010 | []                   | 1  | 0 | 0 | PUSH 0
+ ---  | 00007 | 0011 | [0]                  | 1  | 0 | 0 | POPM 14
  ...
-Output: Hello, World!
-Overall quantity of ticks: 809
-Instructions executed: 162
+
+Output:       Hello, World!
+Ticks:        809
+Instructions: 162
 ```
 
-In the log, `Tick` marks the start of the execute phase of the current instruction (after the 3-cycle fetch). Lines like `[ISR] Tick: ...` mean execution inside the interrupt handler (`ei = 0`). Input delivery and loss are logged separately: `TRAP DELIVERED 'H' (0x48) -> input_port`, `TRAP 'l' DROPPED (port busy)`.
+In the log, `Tick` marks the start of the execute phase of the current instruction (after the 3-cycle fetch). Lines with `ISR` mean execution inside the interrupt handler. Input delivery and loss are logged separately: 
+
+- `Interrupt input of <char>` 
+- `Interrupt input of <char> WAS DROPPED`
 
 ### Golden Tests
 
 Tests are contained in `tests` folder. Run:
 
 ```sh
-pytest -v                         # normal run
-pytest tests/ --update-goldens    # regenerate snapshots
+pytest -v                     # normal run
+pytest -v --update-goldens    # regenerate snapshots
 ```
 
 | Test          | Algorithm                                                                 |
 |---------------|---------------------------------------------------------------------------|
-| `hello_world` | Print hello world                                                         |
-| `cat`         | Echo input characters to output                                           |
-| `hello_user`  | Prompt for a name, read it, print a greeting                              |
-| `sort`        | Bubble sort of an array                                                   |
-| `double_math` | 64-bit arithmetic                                                         |
-| `prob2`       | Euler #6: difference of square of sum and sum of squares for 1..100       |
 | `array_sum`   | Sum array elements with step-by-step intermediate output                  |
 | `cat_fail`    | Character loss under a dense interrupt schedule                           |
+| `cat`         | Echo input characters to output                                           |
+| `double_math` | 64-bit arithmetic                                                         |
+| `hello_user`  | Prompt for a name, read it, print a greeting                              |
+| `hello_world` | Print hello world                                                         |
+| `prob2`       | Euler #6: difference of square of sum and sum of squares for 1..100       |
+| `sort`        | Bubble sort of an array                                                   |
 
 **Golden file layout:**
 

@@ -3,7 +3,7 @@ import logging
 import re
 import sys
 
-from isa import BinaryManager, Instruction, Opcode
+from isa import DumpWriter, Instruction, Opcode
 
 logger = logging.getLogger("translator")
 
@@ -107,7 +107,7 @@ def main(source_file: str, target_file: str) -> None:
         print(f"Compilation error:\n{e}")
         sys.exit(1)
 
-    BinaryManager.write_binary(target_file, memory, start_address)
+    DumpWriter.write_dump(target_file, memory, start_address)
 
 
 if __name__ == "__main__":

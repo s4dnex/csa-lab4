@@ -3,11 +3,11 @@ import ast
 import logging
 import sys
 
-from isa import INSTRUCTIONS_WITH_OPERANDS, BinaryManager, Instruction, Opcode
+from isa import INSTRUCTIONS_WITH_OPERANDS, DumpWriter, Instruction, Opcode
 
 logger = logging.getLogger("machine")
 
-DATA_STACK_DISPLAY_LENGTH = 3
+DATA_STACK_LOG_SIZE = 3
 MAX_TICKS = 65536
 WORD_MASK = 0xFFFFFFFF
 
@@ -18,9 +18,9 @@ def to_signed32(x: int) -> int:
 
 
 def format_stack(stack: list[int]) -> str:
-    if len(stack) <= DATA_STACK_DISPLAY_LENGTH:
+    if len(stack) <= DATA_STACK_LOG_SIZE:
         return str(stack)
-    return f"{str(stack[:DATA_STACK_DISPLAY_LENGTH])[:-1]}, ...]"
+    return f"{str(stack[:DATA_STACK_LOG_SIZE])[:-1]}, ...]"
 
 
 class DataPath:
@@ -140,7 +140,7 @@ class DataPath:
 
 class ControlUnit:
     def __init__(
-        self, data_path: DataPath, start_address: int, trap_schedule: list[tuple[int, str]]
+        self, data_path: DataPath, start_address: int, interrupt_schedule: list[tuple[int, str]]
     ):
         self.dp = data_path
         self.pc = start_address
@@ -149,13 +149,13 @@ class ControlUnit:
         self.ei = True
         self.irq = False
         self.halted = False
-        self.trap_schedule = trap_schedule
+        self.interrupt_schedule = interrupt_schedule
         self.instructions_executed = 0
 
     def tick(self) -> None:
         self.ticks += 1
-        while self.trap_schedule and self.ticks == self.trap_schedule[0][0]:
-            _, char = self.trap_schedule.pop(0)
+        while self.interrupt_schedule and self.ticks == self.interrupt_schedule[0][0]:
+            _, char = self.interrupt_schedule.pop(0)
             if self.dp.input_port is None:
                 self.dp.input_port = ord(char)
                 self.irq = True
@@ -354,38 +354,38 @@ class ControlUnit:
         )
 
 
-def load_trap_schedule(trap_schedule_filepath: str) -> list[tuple[int, str]]:
-    if not trap_schedule_filepath:
+def load_interrupt_schedule(schedule_filepath: str) -> list[tuple[int, str]]:
+    if not schedule_filepath:
         return []
 
     try:
-        with open(trap_schedule_filepath, encoding="utf-8") as f:
+        with open(schedule_filepath, encoding="utf-8") as f:
             data = f.read().strip()
     except FileNotFoundError:
-        logging.error(f"Trap schedule file '{trap_schedule_filepath}' not found.")
+        logging.error(f"Interrupt schedule file '{schedule_filepath}' not found.")
         sys.exit(1)
     if not data:
-        logging.warning(f"Trap schedule file '{trap_schedule_filepath}' is empty.")
+        logging.warning(f"Interrupt schedule file '{schedule_filepath}' is empty.")
         return []
 
     try:
-        trap_schedule = ast.literal_eval(data)
+        interrupt_schedule = ast.literal_eval(data)
     except (SyntaxError, ValueError) as e:
-        logging.error(f"Invalid trap schedule in '{trap_schedule_filepath}': {e}")
+        logging.error(f"Invalid interrupt schedule in '{schedule_filepath}': {e}")
         sys.exit(1)
-    if not isinstance(trap_schedule, list):
-        logging.error("Trap schedule must be a list of (tick, char) pairs.")
+    if not isinstance(interrupt_schedule, list):
+        logging.error("Interrupt schedule must be a list of (tick, char) pairs.")
         sys.exit(1)
 
-    return trap_schedule
+    return interrupt_schedule
 
 
-def main(code_file: str, trap_schedule_filepath: str) -> None:
-    prog_memory, start_address = BinaryManager.read_binary(code_file)
-    trap_schedule = load_trap_schedule(trap_schedule_filepath)
+def main(code_file: str, schedule_filepath: str) -> None:
+    prog_memory, start_address = DumpWriter.read_binary(code_file)
+    interrupt_schedule = load_interrupt_schedule(schedule_filepath)
 
     dp = DataPath(2048, prog_memory)
-    cu = ControlUnit(dp, start_address, trap_schedule)
+    cu = ControlUnit(dp, start_address, interrupt_schedule)
     cu.run()
     print(f"Output:       {dp.output_buffer}")
     print(f"Ticks:        {cu.ticks}")
@@ -394,8 +394,8 @@ def main(code_file: str, trap_schedule_filepath: str) -> None:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format="%(message)s")
-    parser = argparse.ArgumentParser(description="Stack machine CPU simulator")
+    parser = argparse.ArgumentParser(description="Stack Machine Simulator")
     parser.add_argument("code", help="Compiled binary file (.bin)")
-    parser.add_argument("schedule", nargs="?", default="", help="Trap schedule file (.txt)")
+    parser.add_argument("schedule", nargs="?", default="", help="Interrupt schedule file (.txt)")
     args = parser.parse_args()
     main(args.code, args.schedule)
