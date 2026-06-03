@@ -9,6 +9,22 @@ logger = logging.getLogger("translator")
 
 MEMORY_SIZE = 65536
 
+ESCAPES = {"n": "\n", "t": "\t", "r": "\r", "0": "\0", "\\": "\\", '"': '"'}
+
+
+def unescape(text: str) -> str:
+    """Process C-style escape sequences (\\n, \\t, \\r, \\0, \\\\, \\\") in a string literal."""
+    result = []
+    i = 0
+    while i < len(text):
+        if text[i] == "\\" and i + 1 < len(text):
+            result.append(ESCAPES.get(text[i + 1], text[i + 1]))
+            i += 2
+        else:
+            result.append(text[i])
+            i += 1
+    return "".join(result)
+
 
 def translate(source_code: str) -> tuple[list[int], int]:
     """Translate source code to machine code."""
@@ -53,7 +69,7 @@ def translate(source_code: str) -> tuple[list[int], int]:
             elif line.startswith(".str"):
                 match = re.search(r'"(.*)"', line)
                 if match:
-                    for char in match.group(1):
+                    for char in unescape(match.group(1)):
                         memory[pc] = ord(char)
                         pc += 1
                     memory[pc] = 0
@@ -97,11 +113,18 @@ def translate(source_code: str) -> tuple[list[int], int]:
     return memory, labels["_start"]
 
 
-def main(source_file: str, target_file: str) -> None:
+def main(source_file: str, target_file: str, lang: str | None = None) -> None:
     with open(source_file, encoding="utf-8") as f:
         source_code = f.read()
 
+    if lang is None:
+        lang = "alg" if source_file.endswith(".alg") else "asm"
+
     try:
+        if lang == "alg":
+            import alg  # local import keeps the modules independent
+
+            source_code = alg.generate(alg.parse(source_code))
         memory, start_address = translate(source_code)
     except Exception as e:
         print(f"Compilation error:\n{e}")
@@ -112,7 +135,13 @@ def main(source_file: str, target_file: str) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Stack Machine Translator")
-    parser.add_argument("code", help="Program (.asm)")
+    parser.add_argument("code", help="Program (.asm or .alg)")
     parser.add_argument("binary_file", help="Compiled code (.bin)")
+    parser.add_argument(
+        "--lang",
+        choices=["asm", "alg"],
+        default=None,
+        help="Source language (default: inferred from extension)",
+    )
     args = parser.parse_args()
-    main(args.code, args.binary_file)
+    main(args.code, args.binary_file, args.lang)

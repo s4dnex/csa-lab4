@@ -19,7 +19,7 @@ def truncate(log: str) -> str:
     return "\n".join(log.splitlines()[:LOG_MAX]) + "\n..."
 
 
-@pytest.mark.golden_test("golden/*.yml")
+@pytest.mark.golden_test("golden/asm/*.yml")
 def test_translator_and_machine(golden, caplog):
     with tempfile.TemporaryDirectory() as tmpdir:
         source_path = os.path.join(tmpdir, "source.asm")

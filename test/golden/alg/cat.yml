@@ -1,0 +1,191 @@
+in_source: |
+  interrupt {
+      let c = input();
+      if (c == 0) {
+          halt();
+      }
+      putc(c);
+  }
+
+  while (1) {
+  }
+in_stdin: "[(10, 'H'), (50, 'e'), (90, 'l'), (130, 'l'), (170, 'o'), (210, '\\0')]"
+out_log: |2-
+   ISR  | Tick  |  PC  |      Data Stack      | EI | C | V | 
+   ---  | 00002 | 0003 | []                   | 1  | 0 | 0 | PUSH 1
+   ---  | 00005 | 0004 | [1]                  | 1  | 0 | 0 | BEQZ 5
+   ---  | 00008 | 0005 | []                   | 1  | 0 | 0 | JUMP 2
+   ---  | 00010 | 0002 | []                   | 1  | 0 | 0 | Interrupt input of 'H'
+   ---  | 00011 | 0003 | []                   | 1  | 0 | 0 | PUSH 1
+   ISR  | 00013 | 0000 | [1]                  | 0  | 0 | 0 | Interrupt trigger
+   ISR  | 00015 | 0001 | [1]                  | 0  | 0 | 0 | JUMP 6
+   ISR  | 00018 | 0007 | [1]                  | 0  | 0 | 0 | PUSHM 65533
+   ISR  | 00022 | 0008 | [1, 72]              | 0  | 0 | 0 | POPM 1
+   ISR  | 00026 | 0009 | [1]                  | 0  | 0 | 0 | PUSHM 1
+   ISR  | 00030 | 000A | [1, 72]              | 0  | 0 | 0 | PUSH 0
+   ISR  | 00033 | 000B | [1, 72, 0]           | 0  | 0 | 0 | CMP
+   ISR  | 00036 | 000C | [1, 0]               | 0  | 0 | 0 | BEQZ 13
+   ISR  | 00039 | 000E | [1]                  | 0  | 0 | 0 | PUSHM 1
+   ISR  | 00043 | 000F | [1, 72]              | 0  | 0 | 0 | POPM 65534
+   ISR  | 00047 | 0010 | [1]                  | 0  | 0 | 0 | IRET
+   ---  | 00050 | 0004 | [1]                  | 1  | 0 | 0 | Interrupt input of 'e'
+   ---  | 00050 | 0004 | [1]                  | 1  | 0 | 0 | BEQZ 5
+   ISR  | 00052 | 0000 | []                   | 0  | 0 | 0 | Interrupt trigger
+   ISR  | 00054 | 0001 | []                   | 0  | 0 | 0 | JUMP 6
+   ISR  | 00057 | 0007 | []                   | 0  | 0 | 0 | PUSHM 65533
+   ISR  | 00061 | 0008 | [101]                | 0  | 0 | 0 | POPM 1
+   ISR  | 00065 | 0009 | []                   | 0  | 0 | 0 | PUSHM 1
+   ISR  | 00069 | 000A | [101]                | 0  | 0 | 0 | PUSH 0
+   ISR  | 00072 | 000B | [101, 0]             | 0  | 0 | 0 | CMP
+   ISR  | 00075 | 000C | [0]                  | 0  | 0 | 0 | BEQZ 13
+   ISR  | 00078 | 000E | []                   | 0  | 0 | 0 | PUSHM 1
+   ISR  | 00082 | 000F | [101]                | 0  | 0 | 0 | POPM 65534
+   ISR  | 00086 | 0010 | []                   | 0  | 0 | 0 | IRET
+   ---  | 00089 | 0005 | []                   | 1  | 0 | 0 | JUMP 2
+   ---  | 00090 | 0002 | []                   | 1  | 0 | 0 | Interrupt input of 'l'
+   ISR  | 00091 | 0000 | []                   | 0  | 0 | 0 | Interrupt trigger
+   ISR  | 00093 | 0001 | []                   | 0  | 0 | 0 | JUMP 6
+   ISR  | 00096 | 0007 | []                   | 0  | 0 | 0 | PUSHM 65533
+   ISR  | 00100 | 0008 | [108]                | 0  | 0 | 0 | POPM 1
+   ISR  | 00104 | 0009 | []                   | 0  | 0 | 0 | PUSHM 1
+   ISR  | 00108 | 000A | [108]                | 0  | 0 | 0 | PUSH 0
+   ISR  | 00111 | 000B | [108, 0]             | 0  | 0 | 0 | CMP
+   ISR  | 00114 | 000C | [0]                  | 0  | 0 | 0 | BEQZ 13
+   ISR  | 00117 | 000E | []                   | 0  | 0 | 0 | PUSHM 1
+   ISR  | 00121 | 000F | [108]                | 0  | 0 | 0 | POPM 65534
+   ISR  | 00125 | 0010 | []                   | 0  | 0 | 0 | IRET
+   ---  | 00128 | 0003 | []                   | 1  | 0 | 0 | PUSH 1
+   ---  | 00130 | 0003 | [1]                  | 1  | 0 | 0 | Interrupt input of 'l'
+   ---  | 00131 | 0004 | [1]                  | 1  | 0 | 0 | BEQZ 5
+   ISR  | 00133 | 0000 | []                   | 0  | 0 | 0 | Interrupt trigger
+   ISR  | 00135 | 0001 | []                   | 0  | 0 | 0 | JUMP 6
+   ISR  | 00138 | 0007 | []                   | 0  | 0 | 0 | PUSHM 65533
+   ISR  | 00142 | 0008 | [108]                | 0  | 0 | 0 | POPM 1
+   ISR  | 00146 | 0009 | []                   | 0  | 0 | 0 | PUSHM 1
+   ISR  | 00150 | 000A | [108]                | 0  | 0 | 0 | PUSH 0
+   ISR  | 00153 | 000B | [108, 0]             | 0  | 0 | 0 | CMP
+   ISR  | 00156 | 000C | [0]                  | 0  | 0 | 0 | BEQZ 13
+   ISR  | 00159 | 000E | []                   | 0  | 0 | 0 | PUSHM 1
+   ISR  | 00163 | 000F | [108]                | 0  | 0 | 0 | POPM 65534
+   ISR  | 00167 | 0010 | []                   | 0  | 0 | 0 | IRET
+   ---  | 00170 | 0005 | []                   | 1  | 0 | 0 | Interrupt input of 'o'
+   ---  | 00170 | 0005 | []                   | 1  | 0 | 0 | JUMP 2
+   ISR  | 00172 | 0000 | []                   | 0  | 0 | 0 | Interrupt trigger
+   ISR  | 00174 | 0001 | []                   | 0  | 0 | 0 | JUMP 6
+   ISR  | 00177 | 0007 | []                   | 0  | 0 | 0 | PUSHM 65533
+   ISR  | 00181 | 0008 | [111]                | 0  | 0 | 0 | POPM 1
+   ISR  | 00185 | 0009 | []                   | 0  | 0 | 0 | PUSHM 1
+   ISR  | 00189 | 000A | [111]                | 0  | 0 | 0 | PUSH 0
+   ISR  | 00192 | 000B | [111, 0]             | 0  | 0 | 0 | CMP
+   ISR  | 00195 | 000C | [0]                  | 0  | 0 | 0 | BEQZ 13
+   ISR  | 00198 | 000E | []                   | 0  | 0 | 0 | PUSHM 1
+   ISR  | 00202 | 000F | [111]                | 0  | 0 | 0 | POPM 65534
+   ISR  | 00206 | 0010 | []                   | 0  | 0 | 0 | IRET
+   ---  | 00209 | 0003 | []                   | 1  | 0 | 0 | PUSH 1
+   ---  | 00210 | 0003 | [1]                  | 1  | 0 | 0 | Interrupt input of '\x00'
+   ISR  | 00211 | 0000 | [1]                  | 0  | 0 | 0 | Interrupt trigger
+   ISR  | 00213 | 0001 | [1]                  | 0  | 0 | 0 | JUMP 6
+   ISR  | 00216 | 0007 | [1]                  | 0  | 0 | 0 | PUSHM 65533
+   ISR  | 00220 | 0008 | [1, 0]               | 0  | 0 | 0 | POPM 1
+   ISR  | 00224 | 0009 | [1]                  | 0  | 0 | 0 | PUSHM 1
+   ISR  | 00228 | 000A | [1, 0]               | 0  | 0 | 0 | PUSH 0
+   ISR  | 00231 | 000B | [1, 0, 0]            | 0  | 0 | 0 | CMP
+   ISR  | 00234 | 000C | [1, 1]               | 0  | 0 | 0 | BEQZ 13
+   ISR  | 00237 | 000D | [1]                  | 0  | 0 | 0 | HALT
+output: |
+  Output:       Hello
+  Ticks:        238
+  Instructions: 68
+machine_code: |
+  START: 0002
+
+  0000 - 17000006 - JUMP 6
+  0001 - 00000000 - 0
+  0002 - 01000001 - PUSH 1
+  0003 - 18000005 - BEQZ 5
+  0004 - 17000002 - JUMP 2
+  0005 - 21000000 - HALT
+  0006 - 0200FFFD - PUSHM 65533
+  0007 - 05000001 - POPM 1
+  0008 - 02000001 - PUSHM 1
+  0009 - 01000000 - PUSH 0
+  0010 - 11000000 - CMP
+  0011 - 1800000D - BEQZ 13
+  0012 - 21000000 - HALT
+  0013 - 02000001 - PUSHM 1
+  0014 - 0500FFFE - POPM 65534
+  0015 - 20000000 - IRET
+  0016-65535 - 00000000 - 0
+asm: |
+  .text
+  .org 0x0
+      jump __isr
+
+  .data
+  v_c: .word 0
+
+  .text
+  _start:
+  __while_1:
+      push 1
+      beqz __endwhile_2
+      jump __while_1
+  __endwhile_2:
+      halt
+  __isr:
+      pushm 65533
+      popm v_c
+      pushm v_c
+      push 0
+      cmp
+      beqz __endif_3
+      halt
+  __endif_3:
+      pushm v_c
+      popm 65534
+      iret
+ast: |-
+  Program
+    functions:
+      []
+    interrupt:
+      Let
+        name: 'c'
+        expr:
+          Call
+            name: 'input'
+            args:
+              []
+      If
+        cond:
+          BinOp
+            op: '=='
+            left:
+              Var
+                name: 'c'
+            right:
+              Num
+                value: 0
+        then_body:
+          ExprStmt
+            expr:
+              Call
+                name: 'halt'
+                args:
+                  []
+        else_body:
+          []
+      ExprStmt
+        expr:
+          Call
+            name: 'putc'
+            args:
+              Var
+                name: 'c'
+    body:
+      While
+        cond:
+          Num
+            value: 1
+        body:
+          []

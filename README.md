@@ -12,7 +12,110 @@
 
 ## Programming Language
 
-### Assembler BNF
+A small JavaScript-like programming language. It is compiled to the assembler described further below, so the toolchain
+is `alg -> asm -> binary -> machine`.
+
+### Algorithmic Language BNF
+
+```bnf
+<program>     ::= { <func_def> | <interrupt> | <statement> }
+
+<func_def>    ::= "func" <name> "(" ")" <block>
+<interrupt>   ::= "interrupt" <block>
+<block>       ::= "{" { <statement> } "}"
+
+<statement>   ::= <let> | <assign> | <index_assign> | <if> | <while> | <return> | <expr_stmt>
+<let>         ::= "let" <name> "=" ( <expr> | <array_lit> ) ";"
+<assign>      ::= <name> "=" <expr> ";"
+<index_assign>::= <name> "[" <expr> "]" "=" <expr> ";"
+<if>          ::= "if" "(" <expr> ")" <block> [ "else" ( <if> | <block> ) ]
+<while>       ::= "while" "(" <expr> ")" <block>
+<return>      ::= "return" [ <expr> ] ";"
+<expr_stmt>   ::= <expr> ";"
+
+<array_lit>   ::= "[" [ <number> { "," <number> } ] "]"
+
+<expr>        ::= <comparison>
+<comparison>  ::= <additive> { ("==" | "!=" | "<" | ">" | "<=" | ">=") <additive> }
+<additive>    ::= <term> { ("+" | "-") <term> }
+<term>        ::= <unary> { ("*" | "/" | "%") <unary> }
+<unary>       ::= "-" <unary> | <primary>
+<primary>     ::= <number> | <string> | <name> | <index> | <call> | "(" <expr> ")"
+<index>       ::= <name> "[" <expr> "]"
+<call>        ::= <name> "(" [ <expr> { "," <expr> } ] ")"
+
+<name>        ::= <letter> { <letter> | <digit> }
+<number>      ::= <decimal> | <hex> | <octal> | <binary>
+<string>      ::= '"' { <char> | <escape> } '"'
+<escape>      ::= "\n" | "\t" | "\r" | "\0" | "\\" | "\""
+<comment>     ::= "//" { <any char except newline> }
+```
+
+### Algorithmic Language Semantics
+
+**Evaluation strategy** — strictly sequential / imperative. Statements run top to bottom;
+`if`/`while` drive control flow. Every expression is evaluated on the data stack, leaving
+exactly one value on top.
+
+**Scoping** — global. Every `let` (anywhere in the program) allocates one global variable
+(`.word`); a `let` with the same name simply re-initializes it. Functions share these
+globals and take no parameters.
+
+**Typing** — none. All values are 32-bit signed integers. A character literal is its code
+point; comparison operators yield `1` (true) or `0` (false).
+
+**Literals** — integers (`decimal`, `0x…`, `0o…`, `0b…`) and string literals. String literals are stored as C-strings (`.str`) in the
+data section and printed by the generated `__print_str` routine.
+
+**Arrays** — `let a = [v0, v1, …];` declares an array of constant integers laid out in
+consecutive `.word`s in the data section. `a[i]` reads and `a[i] = e` writes an element
+(compiled to base-address arithmetic plus the indirect `PUSHI`/`POPI` instructions). The
+bare name `a` evaluates to the base address, and `len(a)` is the compile-time length.
+
+**Interrupts** — an `interrupt { … }` block becomes the handler installed at the vector
+(`0x0`). `input()` reads one character from the input port (MMIO 65533). The handler ends
+with an implicit `IRET`. This is how the trap-based programs (`cat`, `hello_user`) read
+input while the main code idles in a `while (1) { }` loop.
+
+**Built-ins:**
+
+| Built-in | Effect |
+|----------|--------|
+| `print(e)` | print a number as decimal, or a string literal as text (65535 / `__print_str`) |
+| `putc(e)` | write one character (65534) |
+| `input()` | read one character from the input port (65533) |
+| `len(a)` | compile-time length of array `a` |
+| `halt()` | stop the machine |
+| `addc(a, b)`, `subc(a, b)`, `mulh(a, b)` | carry-aware add / subtract, and high word of a product — used for 64-bit arithmetic (`double_math`) |
+
+**Mapping expressions onto the machine.** The target is a stack machine with no
+general-purpose registers, so the data stack *is* the expression-evaluation scratch space:
+
+- A leaf (`Num`/`Var`) pushes one value (`push imm` / `pushm var`).
+- A `BinOp` emits *left, right, op*; the ALU pops the two operands and pushes the result,
+  so a nested expression like `sum * sum - sqsum` naturally becomes a post-order traversal
+  of the AST onto the stack. Operator precedence is encoded by the grammar, so no register
+  allocation or temporaries in memory are ever needed.
+- Comparisons that have no direct opcode are synthesized: `a != b` → `cmp; push 0; cmp`,
+  `a <= b` → `gt; push 0; cmp`, `a >= b` → `lt; push 0; cmp`.
+- Variables live in the static data section; there is no spilling because intermediate
+  results stay on the stack.
+
+**Example program:**
+
+```alg
+let n = 100;
+let i = 1;
+let sum = 0;
+while (i <= n) {
+    sum = sum + i;
+    i = i + 1;
+}
+print(sum);
+putc(10);
+```
+
+### Assembler Language BNF
 
 ```bnf
 <program>     ::= <line>*
@@ -47,7 +150,7 @@
 <comment>     ::= ";" <any character except '\n'>*
 ```
 
-### Semantics
+### Assembler Language Semantics
 
 **Evaluation strategy** - strictly sequential (imperative). Each instruction completes before the next one begins. Execution order is driven by the program counter `PC`. Control-flow instructions (e.g., `JUMP`, `BEQZ`, `BNEZ`, `BVS`, `CALL`) update `PC`.
 
@@ -186,7 +289,7 @@ The operand is sign-extended to 32 bits when decoded.
 
 ### Instruction Set
 
-Full instruction cycle = 3 fetch cycles + n execute cycles.
+Full instruction cycle = 2 fetch cycles + n execute cycles.
 
 | Mnemonic   | Opcode | Operand     | Operation                                    | Execute cycles |
 |------------|--------|-------------|----------------------------------------------|----------------|
@@ -204,7 +307,7 @@ Full instruction cycle = 3 fetch cycles + n execute cycles.
 | `ADDC`     | 0x0D   | -           | `DS.push(DS.pop() + DS.pop() + C)` ; C, V    | 1              |
 | `SUBC`     | 0x0E   | -           | `DS.push(DS.pop() − DS.pop() − C)` ; C, V    | 1              |
 | `DIV`      | 0x0F   | -           | `DS.push(DS.pop() / DS.pop())`               | 1              |
-| `MOD`      | 0x10   | -           | `DS.push(DS.pop() % DS.pop())`               | 1              |
+| `MOD`      | 0x10   | -           | `DS.push(rem(DS.pop(), DS.pop()))` (truncated, matches `DIV`) | 1 |
 | `CMP`      | 0x11   | -           | `DS.push(DS.pop() == DS.pop() ? 1 : 0)`      | 1              |
 | `GT`       | 0x12   | -           | `DS.push(DS.pop() > DS.pop() ? 1 : 0)`       | 1              |
 | `LT`       | 0x13   | -           | `DS.push(DS.pop() < DS.pop() ? 1 : 0)`       | 1              |
@@ -226,22 +329,52 @@ Full instruction cycle = 3 fetch cycles + n execute cycles.
 
 ## Translator
 
-### Command-Line Interface
+The toolchain has two translators. `src\translator.py` is the single entry point that
+produces a binary: it assembles `.asm` directly, and for `.alg` input it first invokes the
+`alg` front-end automatically.
+
+### Unified CLI
 
 ```sh
-python src\translator.py <source.asm> <output.bin>
+python src\translator.py <source.asm | source.alg> <output.bin> [--lang asm|alg]
 ```
 
-Produces two files:
+The source language is inferred from the file extension (`.alg` → `alg`, otherwise `asm`);
+`--lang` overrides it. So an `alg` program goes straight to a runnable binary in one step:
 
-- `<output.bin>` - binary file. First 4 bytes: start address (`_start`), followed by 2048 × 4 bytes of memory.
+```sh
+python src\translator.py example\alg\prob2.alg out\prob2.bin
+python src\machine.py out\prob2.bin
+```
+
+### alg front-end CLI
+
+`src\alg.py` compiles `alg` to assembler text on its own (useful for inspecting the output
+or the AST):
+
+```sh
+python src\alg.py <source.alg> <output.asm> [--ast]
+```
+
+- *Input*: an `.alg` source file. *Output*: the generated `.asm`.
+- `--ast` additionally prints the human-readable AST to stdout.
+
+It runs three stages: **tokenize** (regex lexer) → **parse** (recursive-descent parser
+building the AST shown in the golden tests) → **generate** (post-order walk of the AST that
+emits stack-machine instructions).
+
+### Assembler
+
+`src\translator.py` with `.asm` input produces two files:
+
+- `<output.bin>` - binary file. First 4 bytes: start address (`_start`), followed by 65536 × 4 bytes of memory.
 
 - `<output>_dump.log` - text dump in the form `<addr> - <HEXCODE> - <mnemonic>`.
 
 Example:
 
 ```sh
-python src\translator.py examples\hello_world.asm out\hello_world.bin
+python src\translator.py example\asm\hello_world.asm out\hello_world.bin
 ```
 
 Example dump:
@@ -321,11 +454,57 @@ Write .bin and _dump.log
 
 ![controlunit.svg](img/controlunit.svg)
 
+The Control Unit is **hardwired**. The `Instruction Decoder` decodes the opcode (the top 8 bits of `IR`) and, together with the `Step Counter`, drives the control signals to the DataPath on each tick. The `Step Counter` numbers the micro-steps inside one instruction; it is reset after the last step so the next fetch starts at step 0.
+
+#### Registers
+
+| Register | Where | Width | Purpose |
+|----------|-------|-------|---------|
+| `PC` (Program Counter) | ControlUnit | 16 | Address of the next instruction. Loaded through `MUX_PC` from `PC + 1` (sequential), the sign-extended operand (jump/branch/call target) or `0x0` (interrupt vector). |
+| `IR` (Instruction Register) | ControlUnit | 32 | The fetched instruction word. Bits 31..24 go to the `Instruction Decoder`; bits 23..0 go to the `Sign Extender`. |
+| `Return Stack` | ControlUnit | 16 | Return addresses for `CALL`/`RET`/`IRET` and the interrupt entry. Depth 256. |
+| `Step Counter` (SC) | ControlUnit | – | Micro-step index within the current instruction. |
+| `EI` | ControlUnit | 1 | Interrupt-enable flip-flop. |
+| `AR` (Address Register) | DataPath | 16 | Memory address for **indirect** access; loaded from the data-stack top via `MUX_AR` (used by `PUSHI`/`POPI`). |
+| `DR` (Data Register) | DataPath | 32 | Buffers a word moving between memory/IO and the data stack; source chosen by `MUX_DR`. |
+| `Data Stack` (`Top`, `Second`) | DataPath | 32 | Operand stack, depth 256. `Top`/`Second` feed the ALU through `MUX_TS`. |
+
+#### Flags
+
+The `SF` (status flags) register holds two flags, both written only by `ADD`/`SUB`/`ADDC`/`SUBC`:
+
+- `C` (carry) — unsigned carry/borrow.
+- `V` (overflow) — signed overflow.
+
+They reach the Control Unit on the `Branch conditions /2` line and are tested by `BCS`/`BCC`/`BVS`/`BVC`. The zero condition for `BEQZ`/`BNEZ` is taken from the popped data-stack value, not from `SF`.
+
+#### Control signals
+
+All Control-Unit → DataPath lines are drawn dashed/red on the schemes (only representative ones are shown, per the task's recommendation):
+
+| Signal | Target | Effect |
+|--------|--------|--------|
+| `PC Sel` + `PC Latch` | `MUX_PC`, `PC` | Select PC source and latch it. |
+| `AR Latch` | `AR` | Latch the Address Register. |
+| `AD Sel` | `MUX_ADDR` | Select memory address source: `PC` (fetch), operand (direct), or `AR` (indirect). |
+| `DR Sel` + `DR Latch` | `MUX_DR`, `DR` | Select Data Register source and latch it. |
+| `TS Sel` | `MUX_TS` | Select the ALU operand (`Top`/`Second`). |
+| `ALU Op` | `ALU` | Select the ALU operation. |
+| `DS Push/Pop` | `Data Stack` | Push/pop the data stack. |
+| `RS Push/Pop` | `Return Stack` | Push/pop the return stack. |
+| `Read/Write` | `Memory` | Memory read or write command. |
+| `I/O Sel` | `MUX_IO` | Select the I/O interface. |
+| `SC Increment/Reset` | `Step Counter` | Advance or reset the micro-step counter. |
+| `Enable/Disable` | `EI` | Set/clear the interrupt-enable flag. |
+| `IRQ` | ControlUnit | Interrupt-request input line. |
+
+The `Address Decoder` (DataPath) routes a memory access either to a RAM cell or to one of the MMIO interfaces (addresses 65533–65535). The `Sign Extender` + `& 0xFFFFFF` block takes the 24-bit operand field, masks it and sign-extends it to a 32-bit immediate (or uses the low 16 bits as an address).
+
 #### Fetch Cycle
 
 The instruction fetch cycle is the same for all instructions and takes 2 cycles:
 
-1. `PC -> MUX_ADDR -> MUX_AR -> MEM[PC] -> DR` (`DR Latch`)
+1. `PC -> MUX_ADDR -> MEM[PC] -> DR` (`DR Latch`)
 2. `DR -> IR` (`IR Latch`)
 
 After fetch, the execute phase runs.
@@ -345,8 +524,9 @@ Between instructions, `irq && ei` is checked. If true, **one additional cycle** 
 ### Toolchain
 
 ```text
-<name>.asm
-       |  python src\translator.py <name.asm> <output.bin>
+<name>.alg ---.
+              |  python src\translator.py <name.{alg,asm}> <output.bin>
+<name>.asm ---'
        V
 <name>.bin + <name>_dump.log
        |  python src\machine.py <binary.bin> [input.txt]
@@ -357,51 +537,60 @@ stdout: tick log + output
 **Example:**
 
 ```sh
-python src\translator.py examples\hello_world.asm out\hello_world.bin
+python src\translator.py example\asm\hello_world.asm out\hello_world.bin
 python src\machine.py out\hello_world.bin
 
  ISR  | Tick  |  PC  |      Data Stack      | EI | C | V | 
- ---  | 00003 | 0010 | []                   | 1  | 0 | 0 | PUSH 0
- ---  | 00007 | 0011 | [0]                  | 1  | 0 | 0 | POPM 14
+ ---  | 00002 | 0010 | []                   | 1  | 0 | 0 | PUSH 0
+ ---  | 00005 | 0011 | [0]                  | 1  | 0 | 0 | POPM 14
  ...
 
 Output:       Hello, World!
-Ticks:        809
+Ticks:        620
 Instructions: 162
 ```
 
-In the log, `Tick` marks the start of the execute phase of the current instruction (after the 3-cycle fetch). Lines with `ISR` mean execution inside the interrupt handler. Input delivery and loss are logged separately: 
+In the log, `Tick` marks the start of the execute phase of the current instruction (after the 2-cycle fetch). Lines with `ISR` mean execution inside the interrupt handler. Input delivery and loss are logged separately: 
 
 - `Interrupt input of <char>` 
 - `Interrupt input of <char> WAS DROPPED`
 
 ### Golden Tests
 
-Tests are contained in `tests` folder. Run:
+Tests are contained in the `test` folder. Run:
 
 ```sh
 pytest -v                     # normal run
 pytest -v --update-goldens    # regenerate snapshots
 ```
 
-| Test          | Algorithm                                                                 |
-|---------------|---------------------------------------------------------------------------|
-| `array_sum`   | Sum array elements with step-by-step intermediate output                  |
-| `cat_fail`    | Character loss under a dense interrupt schedule                           |
-| `cat`         | Echo input characters to output                                           |
-| `double_math` | 64-bit arithmetic                                                         |
-| `hello_user`  | Prompt for a name, read it, print a greeting                              |
-| `hello_world` | Print hello world                                                         |
-| `prob2`       | Euler #6: difference of square of sum and sum of squares for 1..100       |
-| `sort`        | Bubble sort of an array                                                   |
+The same eight algorithms are tested at two levels. Assembler-level tests
+(`test/test_golden.py`, snapshots in `test/golden/asm/`) assemble hand-written `.asm`;
+`alg`-level tests (`test/test_alg_golden.py`, snapshots in `test/golden/alg/`) run the full
+`alg -> asm -> binary -> machine` chain and additionally assert the parsed AST.
+
+| Test          | Algorithm                                                              |
+|---------------|------------------------------------------------------------------------|
+| `hello_world` | Print hello world                                                      |
+| `cat`         | Echo input characters to output                                        |
+| `cat_fail`    | Character loss under a dense interrupt schedule                        |
+| `hello_user`  | Prompt for a name, read it, print a greeting                           |
+| `sort`        | Bubble sort of an array                                                |
+| `array_sum`   | Sum array elements with step-by-step intermediate output               |
+| `double_math` | 64-bit arithmetic                                                      |
+| `prob2`       | Euler #6: difference of square of sum and sum of squares for 1..100    |
+
+`alg` additionally has `alg_demo` (functions, `if`/`else`, `while`, precedence, strings).
 
 **Golden file layout:**
 
 ```text
-tests/golden/<name>.yml
-    in_source - algorithm source code
-    output - program output without the tick log
-    machine_code - machine code and data dump
-    out_log - tick log
-    in_stdin - input data
+test/golden/asm/<name>.yml       test/golden/alg/<name>.yml
+    in_source   - source code        in_source    - alg source code
+    output      - program output      ast          - parsed AST
+    machine_code- code+data dump      asm          - generated assembler
+    out_log     - tick log            machine_code - code+data dump
+    in_stdin    - input data          output       - program output
+                                      out_log      - tick log
+                                      in_stdin     - input data
 ```

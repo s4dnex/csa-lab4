@@ -121,7 +121,8 @@ class DataPath:
         elif opcode == Opcode.MOD:
             if b == 0:
                 raise ZeroDivisionError("Division by zero")
-            self.push(a % b)
+            # remainder of truncated division, consistent with DIV's int(a / b)
+            self.push(to_signed32(a - b * int(a / b)))
 
         elif opcode == Opcode.CMP:
             self.push(1 if a == b else 0)
@@ -386,7 +387,12 @@ def main(code_file: str, schedule_filepath: str) -> None:
     dp = DataPath(65536, prog_memory)
     cu = ControlUnit(dp, start_address, interrupt_schedule)
     cu.run()
-    print(f"Output:       {dp.output_buffer}")
+    prefix = "Output:       "
+    indent = " " * len(prefix)
+    aligned = dp.output_buffer.replace("\n", "\n" + indent)
+    if aligned.endswith("\n" + indent):  # drop dangling indent on a trailing newline
+        aligned = aligned[: -len(indent)]
+    print(f"{prefix}{aligned}")
     print(f"Ticks:        {cu.ticks}")
     print(f"Instructions: {cu.instructions_executed}")
 
