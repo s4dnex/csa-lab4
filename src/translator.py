@@ -7,7 +7,7 @@ from isa import DumpWriter, Instruction, Opcode
 
 logger = logging.getLogger("translator")
 
-MEMORY_SIZE = 2048
+MEMORY_SIZE = 65536
 
 
 def translate(source_code: str) -> tuple[list[int], int]:

@@ -13,7 +13,7 @@ loop:
     pushi
     beqz end
 
-    push 2046
+    push 65534
     pushm ptr
     pushi
     popi

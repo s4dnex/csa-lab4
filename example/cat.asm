@@ -8,7 +8,7 @@ useless:
     jump useless
 
 process_trap:
-    pushm 2045
+    pushm 65533
     dup
     push 0
     cmp
@@ -17,5 +17,5 @@ process_trap:
     halt
 
 print_char:
-    popm 2046
+    popm 65534
     iret

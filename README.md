@@ -82,7 +82,7 @@ loop:
     pushm ptr
     pushi
     beqz end
-    push 2046
+    push 65534
     pushm ptr
     pushi
     popi
@@ -112,13 +112,13 @@ Von Neumann architecture - a single address space for instructions and data.
   | ...       | variables                        |
   | T         | start of .text                   | 
   | ...       | _start: instructions             |
-  | 2045      | MMIO: INPUT                      | 
-  | 2046      | MMIO: OUTPUT_SYMB                | 
-  | 2047      | MMIO: OUTPUT_DEC                 |
+  | 65533     | MMIO: INPUT                      | 
+  | 65534     | MMIO: OUTPUT_SYMB                | 
+  | 65535     | MMIO: OUTPUT_DEC                 |
   +-----------+----------------------------------+
 ```
 
-**Size:** 2048 machine words of 32 bits each (2045 of which available for code and data).
+**Size:** 65536 machine words of 32 bits each (65533 of which available for code and data).
 
 **Stacks:**
 
@@ -136,9 +136,9 @@ Von Neumann architecture - a single address space for instructions and data.
 
 **Mapping to memory:**
 
-- `.word N` - one word initialized with N.
+- `.word N` - one word initialized with value N.
 
-- `.str "str"` → `len(str) + 1` words: one word per character, last word is the null terminator.
+- `.str "str"` -> `len(str) + 1` words: one word per character, last word is the null terminator.
 
 - Instructions - one 32-bit word (8-bit opcode + 24-bit operand).
 
@@ -146,15 +146,15 @@ Von Neumann architecture - a single address space for instructions and data.
 
 ---
 
-## Instruction Set
+## Instruction Set Architecture
 
 ### Processor Features
 
-- **Architecture:** stack (`stack`). No general-purpose registers - all computation uses the `Data Stack`. The Return Stack is managed by hardware for `CALL` / `RET` / `IRET`.
+- **Architecture:** stack. No general-purpose registers - all computation uses the `Data Stack`. The Return Stack is managed by hardware for `CALL` / `RET` / `IRET`.
 
-- **I/O:** memory-mapped I/O (cell addresses 2045–2047). Access via `PUSHM` / `PUSHI` / `POPM` / `POPI`.
+- **I/O:** memory-mapped I/O (cell addresses 65533–65535). Access via `PUSHM` / `PUSHI` / `POPM` / `POPI`.
 
-- **Interrupts:** a single `input_port` cell holds the incoming character. Each **tick**, the interrupt schedule is checked: if the scheduled tick has arrived and the **port is empty**, the character is written to `input_port` and `irq` is set. If the port is busy, the new character is **dropped**. The handler runs **between instructions**: before fetch, `irq && ei` is tested - if true, `PC` is pushed to the Return Stack, `PC ← 0x0`, `ei ← 0` and `irq ← 0`. `IRET` restores `PC` and sets `ei ← 1`. `input_port` is cleared when read at `INPUT_ADDR`.
+- **Interrupts:** a single `input_port` cell holds the incoming character. Each **tick**, the interrupt schedule is checked: if the scheduled tick has arrived and the **port is empty**, the character is written to `input_port` and `irq` is set. If the port is busy, the new character is **dropped**. The handler runs **between instructions**: before fetch, `irq && ei` is tested - if true, `PC` is pushed to the Return Stack, `PC <- 0x0`, `ei <- 0` and `irq <- 0`. `IRET` restores `PC` and sets `ei <- 1`. `input_port` is cleared when read at `INPUT_ADDR`.
 
 - **Nested interrupts** are not allowed (`ei = 0`). If a character arrives while `ei = 0` but the port is already empty (the handler has read it), the character is placed in `input_port` and `irq` is set. After `IRET`, it will be serviced again because interrupts are re-enabled. If the port is still busy, the character is lost.
 
@@ -184,14 +184,14 @@ Each instruction is one 32-bit machine word:
 
 The operand is sign-extended to 32 bits when decoded.
 
-### Instruction Set Summary
+### Instruction Set
 
 Full instruction cycle = 3 fetch cycles + n execute cycles.
 
 | Mnemonic   | Opcode | Operand     | Operation                                    | Execute cycles |
 |------------|--------|-------------|----------------------------------------------|----------------|
 | `PUSH`     | 0x01   | `immediate` | `DS.push(imm)`                               | 1              |
-| `PUSHM`    | 0x02   | `address`   | `DS.push(MEM[addr])`                         | 3              |
+| `PUSHM`    | 0x02   | `address`   | `DS.push(MEM[addr])`                         | 2              |
 | `PUSHI`    | 0x03   | -           | `DS.push(MEM[DS.pop()])`                     | 3              |
 | `POP`      | 0x04   | -           | `DS.pop()`                                   | 1              |
 | `POPM`     | 0x05   | `address`   | `MEM[addr] = DS.pop()`                       | 2              |
@@ -222,15 +222,6 @@ Full instruction cycle = 3 fetch cycles + n execute cycles.
 | `RET`      | 0x1F   | -           | `PC = RS.pop()`                              | 1              |
 | `IRET`     | 0x20   | -           | `PC = RS.pop(); EI = 1`                      | 1              |
 | `HALT`     | 0x21   | -           | Halt                                         | 1              |
-
-**Example for `PUSHM <address>`:**
-
-1. operand → MUX → AR (`addr_sel = imm`, `latch_ar`)
-
-2. MEM[AR] → MUX → DR (`read`, `dr_sel = mem`, `latch_dr`)
-
-3. DR → MUX → T (DS) (`stack_sel = DR`, `ds_push`)
-
 ---
 
 ## Translator
@@ -277,7 +268,7 @@ START: 0015
 0017 - 0200000E - PUSHM 14
 0018 - 03000000 - PUSHI
 0019 - 1800001D - BEQZ 29
-0020 - 010007FE - PUSH 2046
+0020 - 0100FFFE - PUSH 65534
 0021 - 0200000E - PUSHM 14
 0022 - 03000000 - PUSHI
 0023 - 06000000 - POPI
@@ -287,7 +278,7 @@ START: 0015
 0027 - 0500000E - POPM 14
 0028 - 17000011 - JUMP 17
 0029 - 21000000 - HALT
-0030-2047 - 00000000 - 0
+0030-65535 - 00000000 - 0
 ```
 
 ### Translation Stages
@@ -323,56 +314,29 @@ Write .bin and _dump.log
 
 ### DataPath
 
-![datapath.svg](scheme/datapath.svg)
+![datapath.svg](img/datapath.svg)
 
-**Signals from Control Unit:**
-
-| Signal      | Description                                                              |
-|-------------|--------------------------------------------------------------------------|
-| `ds_push`   | Push MUX output onto the Data Stack                                      |
-| `ds_pop`    | Pop T from the Data Stack                                                |
-| `addr_sel`  | MUX selector for the value loaded into AR                                |
-| `latch_ar`  | Latch Address Register from MUX                                          |
-| `dr_sel`    | MUX selector for the value loaded into DR                                |
-| `latch_dr`  | Latch Data Register                                                      |
-| `alu_op`    | ALU operation code                                                       |
-| `stack_sel` | MUX selector for the value pushed onto T (Data Stack)                    |
-| `read`      | Initiate read: selected device (memory or I/O) drives the bus            |
-| `write`     | Initiate write: selected device (memory or I/O) accepts data from the bus|
 
 ### ControlUnit
 
-![controlunit.svg](scheme/controlunit.svg)
-
-**Signals from Control Unit:**
-
-| Signal     | Description                              |
-|------------|------------------------------------------|
-| `pc_sel`   | MUX selector for the value loaded into PC|
-| `latch_pc` | Latch PC                                 |
-| `rs_push`  | Push PC onto the Return Stack            |
-| `rs_pop`   | Pop from the Return Stack                |
-| `latch_ir` | Latch IR                                 |
-| `inc`      | Increment Step Counter by 1              |
-| `reset`    | Reset Step Counter to 0                  |
+![controlunit.svg](img/controlunit.svg)
 
 #### Fetch Cycle
 
-The instruction fetch cycle is the same for all instructions and takes 3 cycles:
+The instruction fetch cycle is the same for all instructions and takes 2 cycles:
 
-1. `PC → MUX → AR` (`latch_ar`)
-2. `MEM[AR] → DR` (`latch_dr`)
-3. `DR → IR` (`latch_ir`), concurrently with `PC + 1 → PC` (`latch_pc`)
+1. `PC -> MUX_ADDR -> MUX_AR -> MEM[PC] -> DR` (`DR Latch`)
+2. `DR -> IR` (`IR Latch`)
 
 After fetch, the execute phase runs.
-Between instructions, `irq && ei` is checked. If true, **one additional cycle** runs: push PC to the Return Stack, `PC ← 0x0`, `ei ← 0`, `irq ← 0`.
+Between instructions, `irq && ei` is checked. If true, **one additional cycle** pushes PC to the Return Stack, `PC <- 0x0`, `EI <- 0`.
 
 ### Simulator Implementation Notes
 
-- **Cycle-accurate.** Fetch always takes **3 cycles**. Execute takes 1–3 cycles depending on the opcode.
-- Main loop: `check_interrupt() → fetch() → execute_instruction()`. After each cycle, `tick()` advances the global tick counter and checks the interrupt schedule.
-- Two hardware stacks: `data_stack` and `return_stack`. Overflow raises an exception and stops the machine.
-- MMIO: access type is determined by address. `memory_read(2045)` returns the current `input_port` value and clears the port. `memory_write(2046, v)` appends ASCII to `output_buffer`. `memory_write(2047, v)` appends a decimal value to `output_buffer`.
+- **Cycle-accurate.** Fetch always takes **2 cycles**. Execute takes 1–3 cycles depending on the operation.
+- Main Loop: `check_interrupt() -> fetch() -> execute_instruction()`. After each cycle, `tick()` advances the global tick counter and checks the interrupt schedule.
+- Two hardware stacks: `Data Stack` and `Return Stack`. Overflow raises an exception and stops the machine.
+- MMIO: access type is determined by address. `memory_read(65533)` returns the current `input_port` value and clears the port. `memory_write(65534, v)` appends ASCII to `output_buffer`. `memory_write(65535, v)` appends a decimal value to `output_buffer`.
 
 ---
 

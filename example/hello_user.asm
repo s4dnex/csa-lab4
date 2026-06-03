@@ -17,7 +17,7 @@ name:           .word 0
 .text
 .org 0x150
 process_trap:
-    pushm 2045
+    pushm 65533
     popm current_symb
 
     pushm current_symb
@@ -75,7 +75,7 @@ print_str_loop:
     pushi
     beqz print_end
 
-    push 2046
+    push 65534
     pushm str_ptr
     pushi
     popi
@@ -95,7 +95,7 @@ print_raw_loop:
     pushm name_len
     beqz print_end
 
-    push 2046
+    push 65534
     pushm str_ptr
     pushi
     popi

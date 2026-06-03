@@ -16,7 +16,7 @@ loop:
     lt
     beqz print_sum
 
-    push 2047
+    push 65535
     push array
     pushm i
     add
@@ -31,7 +31,7 @@ loop:
     call print_space
     bnez print_equals
 
-    push 2046
+    push 65534
     push 43
     popi
     call print_space
@@ -39,13 +39,13 @@ loop:
     jump after_sep
 
 print_space:
-    push 2046
+    push 65534
     push 32
     popi
     ret
 
 print_equals:
-    push 2046
+    push 65534
     push 61
     popi
     call print_space
@@ -66,7 +66,7 @@ after_sep:
     jump loop
 
 print_sum:
-    push 2047
+    push 65535
     pushm sum
     popi
     halt

@@ -73,14 +73,14 @@ _start:
     halt
 
 print_result:
-    push 2047
+    push 65535
     pushm res_hi
     popi
 
     push sep
     call print_str
 
-    push 2047
+    push 65535
     pushm res_lo
     popi
 
@@ -96,7 +96,7 @@ print_str_loop:
     pushi
     beqz print_str_end
 
-    push 2046
+    push 65534
     pushm print_ptr
     pushi
     popi

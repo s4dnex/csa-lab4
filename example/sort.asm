@@ -85,14 +85,14 @@ print_loop:
     lt
     beqz end
 
-    push 2047
+    push 65535
     push array
     pushm i
     add
     pushi
     popi
 
-    push 2046
+    push 65534
     push 32
     popi
 

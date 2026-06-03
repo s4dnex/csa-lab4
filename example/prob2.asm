@@ -37,6 +37,6 @@ done:
     pushm sum_sq
     sub
 
-    popm 2047
+    popm 65535
 
     halt

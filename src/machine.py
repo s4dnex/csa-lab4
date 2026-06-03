@@ -34,9 +34,9 @@ class DataPath:
         self.MAX_STACK_SIZE = 256
         self.input_port: int | None = None
         self.output_buffer = ""
-        self.INPUT_ADDR = 2045
-        self.SYM_OUTPUT_ADDR = 2046
-        self.DEC_OUTPUT_ADDR = 2047
+        self.INPUT_ADDR = 65533
+        self.SYM_OUTPUT_ADDR = 65534
+        self.DEC_OUTPUT_ADDR = 65535
 
     def memory_read(self, addr: int) -> int:
         if addr == self.INPUT_ADDR:
@@ -176,7 +176,6 @@ class ControlUnit:
 
     def fetch(self) -> tuple[Opcode, int]:
         addr = self.pc
-        self.tick()
         word = self.dp.memory_read(addr)
         self.tick()
         self.pc += 1
@@ -199,7 +198,6 @@ class ControlUnit:
             self.tick()
 
         elif opcode == Opcode.PUSHM:
-            self.tick()
             val = self.dp.memory_read(operand)
             self.tick()
             self.dp.push(val)
@@ -231,6 +229,7 @@ class ControlUnit:
 
         elif opcode == Opcode.POPI:
             val = self.dp.pop()
+            self.tick()
             addr = self.dp.pop()
             self.tick()
             self.dp.memory_write(addr, val)
@@ -384,7 +383,7 @@ def main(code_file: str, schedule_filepath: str) -> None:
     prog_memory, start_address = DumpWriter.read_binary(code_file)
     interrupt_schedule = load_interrupt_schedule(schedule_filepath)
 
-    dp = DataPath(2048, prog_memory)
+    dp = DataPath(65536, prog_memory)
     cu = ControlUnit(dp, start_address, interrupt_schedule)
     cu.run()
     print(f"Output:       {dp.output_buffer}")
