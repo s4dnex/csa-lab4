@@ -176,9 +176,10 @@ class ControlUnit:
             self.log("Interrupt trigger")
 
     def fetch(self) -> tuple[Opcode, int]:
+        # Single-cycle fetch: the word read from memory is latched straight into IR
+        # through MUX_DR (bypassing DR), while PC is incremented on the same edge.
         addr = self.pc
         word = self.dp.memory_read(addr)
-        self.tick()
         self.pc += 1
         self.tick()
 
