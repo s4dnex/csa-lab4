@@ -1,5 +1,5 @@
 """
-tokenize -> parse (recursive descent) -> AST -> code generation (asm).
+tokenize -> parse (recursive descent) -> AST -> code generation into asm
 """
 
 import argparse
