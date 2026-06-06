@@ -325,3 +325,5 @@ __marimo__/
 
 # User-specific
 input/*.txt
+.*/
+!.github
