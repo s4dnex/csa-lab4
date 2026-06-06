@@ -77,14 +77,14 @@ with an implicit `IRET`.
 
 **Built-ins:**
 
-| Built-in | Effect |
-|----------|--------|
-| `print(e)` | print a number as decimal, or a string literal as text (65535 / `__print_str`) |
-| `putc(e)` | write one character (65534) |
-| `input()` | read one character from the input port (65533) |
-| `len(a)` | compile-time length of array `a` |
-| `halt()` | stop the machine |
-| `addc(a, b)`, `subc(a, b)`, `mulh(a, b)` | carry-aware add / subtract, and high word of a product - used for 64-bit arithmetic (`double_math`) |
+| Built-in                                 | Effect                                                                                              |
+|------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| `print(e)`                               | Print a number as decimal, or a string literal as text (65535 / `__print_str`)                      |
+| `putc(e)`                                | Write one character (65534)                                                                         |
+| `input()`                                | Read one character from the input port (65533)                                                      |
+| `len(a)`                                 | Compile-time length of array `a`                                                                    |
+| `halt()`                                 | Stop the machine                                                                                    |
+| `addc(a, b)`, `subc(a, b)`, `mulh(a, b)` | Carry-aware add / subtract, and high word of a product - used for 64-bit arithmetic (`double_math`) |
 
 <!-- 
 **Mapping expressions onto the machine.** The target is a stack machine with no
@@ -231,11 +231,11 @@ Von Neumann architecture - a single address space for instructions and data.
 
 **Addressing modes:**
 
-| Mode        | Example             | Description                                      |
-|-------------|---------------------|--------------------------------------------------|
-| Immediate   | `PUSH <immediate>`  | Load constant from the instruction operand       |
-| Direct      | `PUSHM <address>`   | Read from memory by address in the operand       |
-| Indirect    | `PUSHI`             | Read from memory by address on the stack top     |
+| Mode      | Example            | Description                                  |
+|-----------|--------------------|----------------------------------------------|
+| Immediate | `PUSH <immediate>` | Load constant from the instruction operand   |
+| Direct    | `PUSHM <address>`  | Read from memory by address in the operand   |
+| Indirect  | `PUSHI`            | Read from memory by address on the stack top |
 
 **Mapping to memory:**
 
@@ -293,40 +293,40 @@ Full instruction cycle = 1 fetch cycle + n execute cycles.
 
 Immediate operand takes up to 24 bits, address - up to 16 bits.
 
-| Mnemonic   | Opcode | Operand     | Operation                                    | Execute cycles |
-|------------|--------|-------------|----------------------------------------------|----------------|
-| `PUSH`     | 0x01   | `immediate` | `DS.push(imm)`                               | 1              |
-| `PUSHM`    | 0x02   | `address`   | `DS.push(MEM[addr])`                         | 2              |
-| `PUSHI`    | 0x03   | -           | `DS.push(MEM[DS.pop()])`                     | 3              |
-| `POP`      | 0x04   | -           | `DS.pop()`                                   | 1              |
-| `POPM`     | 0x05   | `address`   | `MEM[addr] = DS.pop()`                       | 2              |
-| `POPI`     | 0x06   | -           | `val=DS.pop(); addr=DS.pop(); MEM[addr]=val` | 3              |
-| `DUP`      | 0x07   | -           | `DS.push(DS[-1])`                            | 2              |
-| `ADD`      | 0x09   | -           | `DS.push(DS.pop() + DS.pop())` ; C, V        | 1              |
-| `SUB`      | 0x0A   | -           | `DS.push(DS.pop() − DS.pop())` ; C, V        | 1              |
-| `MUL`      | 0x0B   | -           | `DS.push((DS.pop() * DS.pop()) & 0xFFFFFFFF)`| 1              |
-| `MULH`     | 0x0C   | -           | `DS.push((DS.pop() * DS.pop()) >> 32)`       | 1              |
-| `ADDC`     | 0x0D   | -           | `DS.push(DS.pop() + DS.pop() + C)` ; C, V    | 1              |
-| `SUBC`     | 0x0E   | -           | `DS.push(DS.pop() − DS.pop() − C)` ; C, V    | 1              |
-| `DIV`      | 0x0F   | -           | `DS.push(DS.pop() / DS.pop())`               | 1              |
-| `MOD`      | 0x10   | -           | `DS.push(rem(DS.pop(), DS.pop()))` (truncated, matches `DIV`) | 1 |
-| `CMP`      | 0x11   | -           | `DS.push(DS.pop() == DS.pop() ? 1 : 0)`      | 1              |
-| `GT`       | 0x12   | -           | `DS.push(DS.pop() > DS.pop() ? 1 : 0)`       | 1              |
-| `LT`       | 0x13   | -           | `DS.push(DS.pop() < DS.pop() ? 1 : 0)`       | 1              |
-| `NOT`      | 0x14   | -           | `DS.push(~DS.pop())`                         | 1              |
-| `AND`      | 0x15   | -           | `DS.push(DS.pop() & DS.pop())`               | 1              |
-| `OR`       | 0x16   | -           | `DS.push(DS.pop() \| DS.pop())`              | 1              |
-| `JUMP`     | 0x17   | `address`   | `PC = addr`                                  | 1              |
-| `BEQZ`     | 0x18   | `address`   | `if DS.pop() == 0: PC = addr`                | 1              |
-| `BNEZ`     | 0x19   | `address`   | `if DS.pop() != 0: PC = addr`                | 1              |
-| `BVS`      | 0x1A   | `address`   | `if V: PC = addr`                            | 1              |
-| `BVC`      | 0x1B   | `address`   | `if !V: PC = addr`                           | 1              |
-| `BCS`      | 0x1C   | `address`   | `if C: PC = addr`                            | 1              |
-| `BCC`      | 0x1D   | `address`   | `if !C: PC = addr`                           | 1              |
-| `CALL`     | 0x1E   | `address`   | `RS.push(PC); PC = addr`                     | 1              |
-| `RET`      | 0x1F   | -           | `PC = RS.pop()`                              | 1              |
-| `IRET`     | 0x20   | -           | `PC = RS.pop(); EI = 1`                      | 1              |
-| `HALT`     | 0x21   | -           | Halt                                         | 1              |
+| Mnemonic | Opcode | Operand     | Operation                                     | Execute cycles |
+|----------|--------|-------------|-----------------------------------------------|----------------|
+| `PUSH`   | 0x01   | `immediate` | `DS.push(imm)`                                | 1              |
+| `PUSHM`  | 0x02   | `address`   | `DS.push(MEM[addr])`                          | 2              |
+| `PUSHI`  | 0x03   | -           | `DS.push(MEM[DS.pop()])`                      | 3              |
+| `POP`    | 0x04   | -           | `DS.pop()`                                    | 1              |
+| `POPM`   | 0x05   | `address`   | `MEM[addr] = DS.pop()`                        | 2              |
+| `POPI`   | 0x06   | -           | `val=DS.pop(); addr=DS.pop(); MEM[addr]=val`  | 3              |
+| `DUP`    | 0x07   | -           | `DS.push(DS[-1])`                             | 2              |
+| `ADD`    | 0x09   | -           | `DS.push(DS.pop() + DS.pop())` ; C, V         | 1              |
+| `SUB`    | 0x0A   | -           | `DS.push(DS.pop() − DS.pop())` ; C, V         | 1              |
+| `MUL`    | 0x0B   | -           | `DS.push((DS.pop() * DS.pop()) & 0xFFFFFFFF)` | 1              |
+| `MULH`   | 0x0C   | -           | `DS.push((DS.pop() * DS.pop()) >> 32)`        | 1              |
+| `ADDC`   | 0x0D   | -           | `DS.push(DS.pop() + DS.pop() + C)` ; C, V     | 1              |
+| `SUBC`   | 0x0E   | -           | `DS.push(DS.pop() − DS.pop() − C)` ; C, V     | 1              |
+| `DIV`    | 0x0F   | -           | `DS.push(DS.pop() / DS.pop())`                | 1              |
+| `MOD`    | 0x10   | -           | `DS.push(rem(DS.pop(), DS.pop()))`            | 1              |
+| `CMP`    | 0x11   | -           | `DS.push(DS.pop() == DS.pop() ? 1 : 0)`       | 1              |
+| `GT`     | 0x12   | -           | `DS.push(DS.pop() > DS.pop() ? 1 : 0)`        | 1              |
+| `LT`     | 0x13   | -           | `DS.push(DS.pop() < DS.pop() ? 1 : 0)`        | 1              |
+| `NOT`    | 0x14   | -           | `DS.push(~DS.pop())`                          | 1              |
+| `AND`    | 0x15   | -           | `DS.push(DS.pop() & DS.pop())`                | 1              |
+| `OR`     | 0x16   | -           | `DS.push(DS.pop() \| DS.pop())`               | 1              |
+| `JUMP`   | 0x17   | `address`   | `PC = addr`                                   | 1              |
+| `BEQZ`   | 0x18   | `address`   | `if DS.pop() == 0: PC = addr`                 | 1              |
+| `BNEZ`   | 0x19   | `address`   | `if DS.pop() != 0: PC = addr`                 | 1              |
+| `BVS`    | 0x1A   | `address`   | `if V: PC = addr`                             | 1              |
+| `BVC`    | 0x1B   | `address`   | `if !V: PC = addr`                            | 1              |
+| `BCS`    | 0x1C   | `address`   | `if C: PC = addr`                             | 1              |
+| `BCC`    | 0x1D   | `address`   | `if !C: PC = addr`                            | 1              |
+| `CALL`   | 0x1E   | `address`   | `RS.push(PC); PC = addr`                      | 1              |
+| `RET`    | 0x1F   | -           | `PC = RS.pop()`                               | 1              |
+| `IRET`   | 0x20   | -           | `PC = RS.pop(); EI = 1`                       | 1              |
+| `HALT`   | 0x21   | -           | Halt                                          | 1              |
 ---
 
 ## Translator
@@ -369,9 +369,9 @@ generate appropriate stack-machine instructions).
 
 Almost the same works with `.asm` input that produces two files:
 
-- `<output.bin>` - binary file. First 4 bytes: start address (`_start`), followed by 65536 × 4 bytes of memory.
-
-- `<output>_dump.log` - text dump in the form `<addr> - <HEXCODE> - <mnemonic>`.
+- `<output.bin>` - binary file. First 4 bytes: start address (`_start`), followed by the memory image as big-endian 32-bit words. Trailing zero words are omitted.
+  
+- `<output>.dump` - text dump in the form `<addr> - <HEXCODE> - <mnemonic>`.
 
 Example:
 
@@ -413,7 +413,6 @@ START: 0015
 0027 - 0500000E - POPM 14
 0028 - 17000011 - JUMP 17
 0029 - 21000000 - HALT
-0030-65535 - 00000000 - 0
 ```
 
 ### Translation Stages
@@ -434,7 +433,7 @@ encode each instruction as a 32-bit word,
 write into the memory array
       |
       V
-Write .bin and _dump.log
+Write .bin and .dump
 ```
 
 **Translator limitations:**
@@ -460,16 +459,16 @@ The Control Unit is **hardwired**. The `Instruction Decoder` decodes the opcode 
 
 #### Registers
 
-| Register | Where | Width | Purpose |
-|----------|-------|-------|---------|
-| `PC` (Program Counter) | ControlUnit | 16 | Address of the next instruction. Loaded through `MUX_PC` from `PC + 1` (sequential), the sign-extended operand (jump/branch/call target) or `0x0` (interrupt vector). |
-| `IR` (Instruction Register) | ControlUnit | 32 | The fetched instruction word. Latched directly from `MUX_DR` (the word coming off the memory data bus), bypassing `DR`, so fetch costs a single cycle. Bits 31..24 go to the `Instruction Decoder`; bits 23..0 go to the `Sign Extender`. |
-| `Return Stack` | ControlUnit | 16 | Return addresses for `CALL`/`RET`/`IRET` and the interrupt entry. |
-| `Step Counter` (SC) | ControlUnit | – | Step within the current instruction. |
-| `EI` | ControlUnit | 1 | Interrupt-enable flip-flop. |
-| `AR` (Address Register) | DataPath | 16 | Memory address for **indirect** access; loaded from the data-stack top via `MUX_AR` (used by `PUSHI`/`POPI`). |
-| `DR` (Data Register) | DataPath | 32 | Buffers a data word moving between memory/IO and the data stack; source chosen by `MUX_DR`. Not used during instruction fetch - `IR` is latched from `MUX_DR` directly. |
-| `Data Stack` (`Top`, `Second`) | DataPath | 32 | Operand stack. `Top`/`Second` feed the ALU to perform arithmetic and logic operations. |
+| Register                       | Where       | Width | Purpose                                                                                                                                                            |
+|--------------------------------|-------------|-------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `PC` (Program Counter)         | ControlUnit | 16    | Address of the next instruction. Loaded through `MUX_PC` from `PC + 1`, the operand (jump/branch/call target) or `0x0` (interrupt vector).                         |
+| `IR` (Instruction Register)    | ControlUnit | 32    | The fetched instruction word. Latched directly from `MUX_DR` (from the memory data bus). Opcode goes to the `Instruction Decoder`, operand goes to the `DataPath`. |
+| `Return Stack`                 | ControlUnit | 16    | Return addresses for `CALL`/`RET`/`IRET` and the interrupt entry.                                                                                                  |
+| `Step Counter` (SC)            | ControlUnit | –     | Step within the current instruction.                                                                                                                               |
+| `EI`                           | ControlUnit | 1     | Interrupt-enable flip-flop.                                                                                                                                        |
+| `AR` (Address Register)        | DataPath    | 16    | Memory address for **indirect** access; loaded from the data-stack top via `MUX_AR` (used by `PUSHI`/`POPI`).                                                      |
+| `DR` (Data Register)           | DataPath    | 32    | Buffers a data word moving between memory/IO and the data stack. Not used during instruction fetch - `IR` is latched from `MUX_DR` directly.                       |
+| `Data Stack` (`Top`, `Second`) | DataPath    | 32    | Operand stack. `Top`/`Second` feed the ALU to perform arithmetic and logic operations.                                                                             |
 
 #### Flags
 
@@ -482,21 +481,21 @@ They reach the Control Unit on the `Branch conditions /2` line and are tested by
 
 #### Control signals
 
-| Signal | Target | Effect |
-|--------|--------|--------|
-| `PC Sel` + `PC Latch` | `MUX_PC`, `PC` | Select PC source and latch it. |
-| `AR Latch` | `AR` | Latch the Address Register. |
-| `AD Sel` | `MUX_ADDR` | Select memory address source: `PC` (fetch), operand (direct), or `AR` (indirect). |
-| `DR Sel` + `DR Latch` | `MUX_DR`, `DR` | Select Data Register source and latch it. |
-| `TS Sel` | `MUX_TS` | Select the value to store on top of the stack. |
-| `ALU Op` | `ALU` | Select the ALU operation. |
-| `DS Push/Pop` | `Data Stack` | Push/pop the data stack. |
-| `RS Push/Pop` | `Return Stack` | Push/pop the return stack. |
-| `Read/Write` | `Memory` | Memory read or write command. |
-| `I/O Sel` | `MUX_IO` | Select the I/O interface. |
-| `SC Increment/Reset` | `Step Counter` | Advance or reset the micro-step counter. |
-| `Enable/Disable` | `EI` | Set/clear the interrupt-enable flag. |
-| `IRQ` | ControlUnit | Interrupt-request input line. |
+| Signal                | Target         | Effect                                                                            |
+|-----------------------|----------------|-----------------------------------------------------------------------------------|
+| `PC Sel` + `PC Latch` | `MUX_PC`, `PC` | Select PC source and latch it.                                                    |
+| `AR Latch`            | `AR`           | Latch the Address Register.                                                       |
+| `AD Sel`              | `MUX_ADDR`     | Select memory address source: `PC` (fetch), operand (direct), or `AR` (indirect). |
+| `DR Sel` + `DR Latch` | `MUX_DR`, `DR` | Select Data Register source and latch it.                                         |
+| `TS Sel`              | `MUX_TS`       | Select the value to store on top of the stack.                                    |
+| `ALU Op`              | `ALU`          | Select the ALU operation.                                                         |
+| `DS Push/Pop`         | `Data Stack`   | Push/pop the data stack.                                                          |
+| `RS Push/Pop`         | `Return Stack` | Push/pop the return stack.                                                        |
+| `Read/Write`          | `Memory`       | Memory read or write command.                                                     |
+| `I/O Sel`             | `MUX_IO`       | Select the I/O interface.                                                         |
+| `SC Increment/Reset`  | `Step Counter` | Advance or reset the micro-step counter.                                          |
+| `Enable/Disable`      | `EI`           | Set/clear the interrupt-enable flag.                                              |
+| `IRQ`                 | ControlUnit    | Interrupt-request input line.                                                     |
 
 The `Address Decoder` routes a memory access either to a memory cell or to one of the MMIO interfaces. 
 The `Sign Extender` + `& 0xFFFFFF` block takes the 24-bit operand field, masks it and sign-extends it to a 32-bit immediate (or uses the low 16 bits as an address).
@@ -521,7 +520,7 @@ Between instructions, `IRQ && EI` is checked. If true, **one additional cycle** 
               |  python src\translator.py <name.{alg,asm}> <output.bin>
 <name>.asm ---'
        V
-<name>.bin + <name>_dump.log
+<name>.bin + <name>.dump
        |  python src\machine.py <binary.bin> [input.txt]
        V
 stdout: tick log + output
@@ -562,16 +561,16 @@ The same eight algorithms are tested at two levels. Assembler tests
 Algorithmic tests (`test/test_alg_golden.py`, snapshots in `test/golden/alg/`) run the full
 `alg -> asm -> binary -> machine` chain and additionally assert the parsed AST.
 
-| Test          | Algorithm                                                              |
-|---------------|------------------------------------------------------------------------|
-| `hello_world` | Print hello world                                                      |
-| `cat`         | Echo input characters to output                                        |
-| `cat_fail`    | Character loss under a dense interrupt schedule                        |
-| `hello_user`  | Prompt for a name, read it, print a greeting                           |
-| `sort`        | Bubble sort of an array                                                |
-| `array_sum`   | Sum array elements with step-by-step intermediate output               |
-| `double_math` | 64-bit arithmetic                                                      |
-| `prob2`       | Euler #6: difference of square of sum and sum of squares for 1..100    |
+| Test          | Algorithm                                                           |
+|---------------|---------------------------------------------------------------------|
+| `hello_world` | Print hello world                                                   |
+| `cat`         | Echo input characters to output                                     |
+| `cat_fail`    | Character loss under a dense interrupt schedule                     |
+| `hello_user`  | Prompt for a name, read it, print a greeting                        |
+| `sort`        | Bubble sort of an array                                             |
+| `array_sum`   | Sum array elements with step-by-step intermediate output            |
+| `double_math` | 64-bit arithmetic                                                   |
+| `prob2`       | Euler #6: difference of square of sum and sum of squares for 1..100 |
 
 `alg` additionally has `alg_demo` (showcase of functions, `if`/`else`, `while`, precedence, strings).
 
