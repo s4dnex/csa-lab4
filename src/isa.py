@@ -1,5 +1,6 @@
 import struct
 from enum import IntEnum
+from itertools import groupby
 
 
 class Opcode(IntEnum):
@@ -105,50 +106,48 @@ class Instruction:
 
 class DumpWriter:
     @staticmethod
+    def _mnemonic(word: int) -> str:
+        """Convert memory word to an instruction mnemonic, or just data if not an opcode."""
+        instruction = Instruction.decode(word)
+        if not isinstance(instruction, Instruction):
+            return f"DATA ({word})"
+        if instruction.opcode in INSTRUCTIONS_WITH_OPERANDS:
+            return f"{instruction.opcode.name} {instruction.operand}"
+        return instruction.opcode.name
+
+    @staticmethod
     def write_dump(bin_filepath: str, memory: list[int], start_address: int) -> None:
-        """Write binary file and text log alongside it."""
+        """Write the binary image and a human-readable dump alongside it."""
 
-        def flush_zeros(zero_end: int) -> None:
-            if zero_end == zero_start:
-                log_f.write(f"{zero_start:04d} - 00000000 - 0\n")
-            else:
-                log_f.write(f"{zero_start:04d}-{zero_end:04d} - 00000000 - 0\n")
+        # trim trailing zeros
+        end = len(memory)
+        while end > 0 and memory[end - 1] == 0:
+            end -= 1
+        image = memory[:end]
 
-        log_filepath = bin_filepath.replace(".bin", "_dump.log")
-        zero_start = None
-
-        with open(bin_filepath, "wb") as bin_f, open(log_filepath, "w", encoding="utf-8") as log_f:
-            bin_f.write(struct.pack(">i", start_address))  # Big-Endian, 32 bits
-            log_f.write(f"START: {start_address:04d}\n\n")
-
-            for addr, word in enumerate(memory):
+        # binary dump: big-endian 32-bit
+        with open(bin_filepath, "wb") as bin_f:
+            bin_f.write(struct.pack(">i", start_address))
+            for word in image:
                 bin_f.write(struct.pack(">i", word))
 
-                if word == 0:
-                    if zero_start is None:
-                        zero_start = addr
-                    continue
-
-                if zero_start is not None:
-                    flush_zeros(addr - 1)
-                    zero_start = None
-
-                hex_str = f"{word & 0xFFFFFFFF:08X}"
-                instruction = Instruction.decode(word)
-
-                if isinstance(instruction, Instruction):
-                    opcode = instruction.opcode
-                    if opcode in INSTRUCTIONS_WITH_OPERANDS:
-                        instr_str = f"{opcode.name} {instruction.operand}"
-                    else:
-                        instr_str = opcode.name
+        # hex dump
+        dump_filepath = bin_filepath.replace(".bin", ".dump")
+        with open(dump_filepath, "w", encoding="utf-8") as log_f:
+            log_f.write(f"START: {start_address:04d}\n\n")
+            addr = 0
+            for is_zero, group in groupby(image, key=lambda word: word == 0):
+                words = list(group)
+                if is_zero:
+                    last = addr + len(words) - 1
+                    span = f"{addr:04d}" if last == addr else f"{addr:04d}-{last:04d}"
+                    log_f.write(f"{span} - 00000000 - 0\n")
+                    addr = last + 1
                 else:
-                    instr_str = f"DATA ({word})"
-
-                log_f.write(f"{addr:04d} - {hex_str} - {instr_str}\n")
-
-            if zero_start is not None:
-                flush_zeros(len(memory) - 1)
+                    for word in words:
+                        hex_str = f"{word & 0xFFFFFFFF:08X}"
+                        log_f.write(f"{addr:04d} - {hex_str} - {DumpWriter._mnemonic(word)}\n")
+                        addr += 1
 
     @staticmethod
     def read_binary(filepath: str) -> tuple[list[int], int]:
