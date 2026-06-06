@@ -1,4 +1,4 @@
-name: CI
+name: csa-lab4-ci
 
 on:
   push:
