@@ -6,6 +6,7 @@ import argparse
 import re
 import sys
 from dataclasses import dataclass, field
+from enum import Enum
 
 # Lexer
 KEYWORDS = frozenset({"let", "if", "else", "while", "func", "return", "interrupt"})
@@ -23,9 +24,18 @@ TOKEN_REGEX = re.compile(
 )
 
 
+class TokenKind(Enum):
+    NUMBER = "number"
+    STRING = "string"
+    NAME = "name"
+    KEYWORD = "keyword"
+    OP = "op"
+    EOF = "eof"
+
+
 @dataclass
 class Token:
-    kind: str  # "number" | "string" | "name" | "keyword" | "op" | "eof"
+    kind: TokenKind
     value: str
     pos: int
 
@@ -41,18 +51,20 @@ def tokenize(source: str) -> list[Token]:
         kind = match.lastgroup
         text = match.group()
         if kind in ("ws", "comment"):
+            # skip whitespaces and comments
             continue
-        if kind == "name" and text in KEYWORDS:
-            kind = "keyword"
         assert kind is not None
-        tokens.append(Token(kind, text, match.start()))
-    tokens.append(Token("eof", "", len(source)))
+        # keywords are lexed as names first, then reclassified
+        is_keyword = kind == "name" and text in KEYWORDS
+        token_kind = TokenKind.KEYWORD if is_keyword else TokenKind(kind)
+        tokens.append(Token(token_kind, text, match.start()))
+    tokens.append(Token(TokenKind.EOF, "", len(source)))
     return tokens
 
 
 # AST
 class Node:
-    """Base class. Subclasses are dataclasses used both as AST and for dumping."""
+    """Base class of AST."""
 
 
 @dataclass
@@ -182,7 +194,7 @@ class Parser:
 
     def parse_program(self) -> Program:
         prog = Program()
-        while self.cur.kind != "eof":
+        while self.cur.kind != TokenKind.EOF:
             if self.cur.value == "func":
                 prog.functions.append(self.parse_func())
             elif self.cur.value == "interrupt":
@@ -222,13 +234,13 @@ class Parser:
             return self.parse_return()
         # assignment `name = expr;`, indexed assignment `name[i] = expr;`,
         # or a bare expression statement
-        if tok.kind == "name" and self.tokens[self.i + 1].value == "=":
+        if tok.kind == TokenKind.NAME and self.tokens[self.i + 1].value == "=":
             name = self.advance().value
             self.expect("=")
             expr = self.parse_expr()
             self.expect(";")
             return Assign(name, expr)
-        if tok.kind == "name" and self.tokens[self.i + 1].value == "[":
+        if tok.kind == TokenKind.NAME and self.tokens[self.i + 1].value == "[":
             name = self.advance().value
             self.expect("[")
             index = self.parse_expr()
@@ -319,10 +331,10 @@ class Parser:
 
     def parse_primary(self) -> Node:
         tok = self.cur
-        if tok.kind == "number":
+        if tok.kind == TokenKind.NUMBER:
             self.advance()
             return Num(int(tok.value, 0))
-        if tok.kind == "string":
+        if tok.kind == TokenKind.STRING:
             self.advance()
             return Str(tok.value[1:-1])
         if tok.value == "(":
@@ -340,7 +352,7 @@ class Parser:
                     elements.append(self.parse_expr())
             self.expect("]")
             return ArrayLit(elements)
-        if tok.kind == "name":
+        if tok.kind == TokenKind.NAME:
             self.advance()
             if self.cur.value == "(":
                 self.advance()
@@ -393,7 +405,7 @@ OUTPUT_DEC = 65535
 OUTPUT_SYM = 65534
 
 # comparison operator -> asm snippet producing a 0/1 value (operands already pushed)
-COMPARE_OPS = {
+COMPARE_SNIPPETS = {
     "==": ["cmp"],
     "<": ["lt"],
     ">": ["gt"],
@@ -480,7 +492,7 @@ class CodeGen:
             if node.op in ARITH_OPS:
                 self.emit(ARITH_OPS[node.op])
             else:
-                for line in COMPARE_OPS[node.op]:
+                for line in COMPARE_SNIPPETS[node.op]:
                     self.emit(line)
         elif isinstance(node, Call):
             self.gen_call(node)
