@@ -1,115 +1,42 @@
 import argparse
-import re
+import logging
 import sys
 
-from isa import BinaryManager, Instruction, Opcode
+import alg
+import asm
+from isa import DumpWriter
 
-MEMORY_SIZE = 2048
-
-
-def translate(source_code: str) -> tuple[list[int], int]:
-    """Translate source code to machine code."""
-    code_lines = source_code.splitlines()
-
-    labels = {}
-    memory = [0] * MEMORY_SIZE
-
-    pc = 0
-    section = ".text"
-    parsed_instructions = []
-
-    for line in code_lines:
-        # Remove comments and whitespaces
-        line = line.split(";")[0].strip()
-        if not line:
-            continue
-
-        if line in (".data", ".text"):
-            section = line
-            continue
-
-        if line.startswith(".org"):
-            pc = int(line.split()[1], 0)
-            continue
-
-        # Take labels and corresponding program counter
-        if ":" in line and '"' not in line.split(":")[0]:
-            label, rest = line.split(":", 1)
-            labels[label.strip()] = pc
-            line = rest.strip()
-            if not line:
-                continue
-
-        # Write numbers and strings
-        if section == ".data":
-            if line.startswith(".word"):
-                val_str = line.split(maxsplit=1)[1].strip()
-                memory[pc] = int(val_str, 0)
-                pc += 1
-
-            elif line.startswith(".str"):
-                match = re.search(r'"(.*)"', line)
-                if match:
-                    for char in match.group(1):
-                        memory[pc] = ord(char)
-                        pc += 1
-                    memory[pc] = 0
-                    pc += 1
-            continue
-
-        # Decode instructions
-        if section == ".text":
-            parts = line.split(maxsplit=1)
-            opcode = parts[0].upper()
-            operand_str = parts[1].strip() if len(parts) > 1 else ""
-
-            parsed_instructions.append((pc, opcode, operand_str))
-            pc += 1
-
-    # Replace labels
-    for addr, opcode, operand_str in parsed_instructions:
-        operand_val = 0
-
-        if operand_str:
-            if operand_str in labels:
-                operand_val = labels[operand_str]
-            else:
-                try:
-                    operand_val = int(operand_str, 0)
-                except ValueError:
-                    raise ValueError(
-                        f"Unknown label or invalid integer: '{operand_str}' at pc={addr}"
-                    ) from None
-
-        try:
-            opcode_obj = Opcode[opcode]
-        except KeyError:
-            raise ValueError(f"Unknown instruction: '{opcode}' at pc={addr}") from None
-
-        memory[addr] = Instruction(opcode_obj, operand_val).encode()
-
-    if "_start" not in labels:
-        raise ValueError("Start label '_start' is missed!")
-
-    return memory, labels["_start"]
+logger = logging.getLogger("translator")
 
 
-def main(source_file: str, target_file: str) -> None:
+def main(source_file: str, target_file: str, lang: str | None = None) -> None:
     with open(source_file, encoding="utf-8") as f:
         source_code = f.read()
 
+    if lang is None:
+        lang = "alg" if source_file.endswith(".alg") else "asm"
+
     try:
-        memory, start_address = translate(source_code)
+        if lang == "alg":
+            source_code = alg.generate(alg.parse(source_code))
+        # else if lang == "asm":
+        memory, start_address = asm.translate(source_code)
     except Exception as e:
         print(f"Compilation error:\n{e}")
         sys.exit(1)
 
-    BinaryManager.write_binary(target_file, memory, start_address)
+    DumpWriter.write_dump(target_file, memory, start_address)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Stack Machine Translator")
-    parser.add_argument("code", help="Program (.asm)")
+    parser.add_argument("code", help="Program code (.asm or .alg)")
     parser.add_argument("binary_file", help="Compiled code (.bin)")
+    parser.add_argument(
+        "--lang",
+        choices=["asm", "alg"],
+        default=None,
+        help="Source language (default: from file extension)",
+    )
     args = parser.parse_args()
-    main(args.code, args.binary_file)
+    main(args.code, args.binary_file, args.lang)

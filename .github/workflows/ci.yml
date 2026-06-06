@@ -1,8 +1,9 @@
-name: CI
+name: csa-lab4-ci
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "dev"]
+  pull_request:
 
 jobs:
   test:
@@ -21,7 +22,7 @@ jobs:
 
       - name: Lint (ruff)
         run: |
-          ruff check src/ tests/
+          ruff check src/ test/
 
       - name: Type check (mypy)
         run: |

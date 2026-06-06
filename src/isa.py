@@ -1,15 +1,16 @@
 import struct
 from enum import IntEnum
+from itertools import groupby
 
 
 class Opcode(IntEnum):
     # Data Movement Instructions
     PUSH = 0x01
-    PUSH_M = 0x02
-    PUSH_IND = 0x03
+    PUSHM = 0x02
+    PUSHI = 0x03
     POP = 0x04
-    POP_M = 0x05
-    POP_IND = 0x06
+    POPM = 0x05
+    POPI = 0x06
     DUP = 0x07
 
     # Arithmetic Instructions
@@ -17,37 +18,66 @@ class Opcode(IntEnum):
     SUB = 0x0A
     MUL = 0x0B
     MULH = 0x0C
-    ADC = 0x0D
-    SBC = 0x0E
+    ADDC = 0x0D
+    SUBC = 0x0E
     DIV = 0x0F
     MOD = 0x10
     CMP = 0x11
     GT = 0x12
     LT = 0x13
 
-    # Branching Instructions
-    JMP = 0x14
-    JZ = 0x15
-    JNZ = 0x16
-    JO = 0x17
+    # Bitwise Instructions
+    NOT = 0x14
+    AND = 0x15
+    OR = 0x16
 
     # Control Flow Instructions
-    CALL = 0x18
-    RET = 0x19
-    IRET = 0x1A
-    HALT = 0x1B
+    JUMP = 0x17
+    BEQZ = 0x18
+    BNEZ = 0x19
+    BVS = 0x1A
+    BVC = 0x1B
+    BCS = 0x1C
+    BCC = 0x1D
+    CALL = 0x1E
+    RET = 0x1F
+    IRET = 0x20
+    HALT = 0x21
 
 
-_INSTRUCTIONS_WITH_OPERANDS = frozenset(
+INSTRUCTIONS_WITH_OPERANDS = frozenset(
     {
         Opcode.PUSH,
-        Opcode.PUSH_M,
-        Opcode.POP_M,
-        Opcode.JMP,
-        Opcode.JZ,
-        Opcode.JNZ,
-        Opcode.JO,
+        Opcode.PUSHM,
+        Opcode.POPM,
+        Opcode.JUMP,
+        Opcode.BEQZ,
+        Opcode.BNEZ,
+        Opcode.BVS,
+        Opcode.BVC,
+        Opcode.BCS,
+        Opcode.BCC,
         Opcode.CALL,
+    }
+)
+
+ALU_UNARY_OPERATIONS = frozenset({Opcode.NOT})
+
+ALU_BINARY_OPERATIONS = frozenset(
+    {
+        Opcode.ADD,
+        Opcode.SUB,
+        Opcode.ADDC,
+        Opcode.SUBC,
+        Opcode.MUL,
+        Opcode.MULH,
+        Opcode.DIV,
+        Opcode.MOD,
+        Opcode.CMP,
+        Opcode.GT,
+        Opcode.LT,
+        Opcode.AND,
+        Opcode.OR,
     }
 )
 
@@ -58,14 +88,12 @@ class Instruction:
         self.operand = operand
 
     def encode(self) -> int:
-        """Упаковывает инструкцию в 32 битное слово:
-        [8 битный опкод] [24 битный операнд]"""
+        """Pack instruction into a 32-bit word: [8-bit opcode] [24-bit operand]."""
         return ((self.opcode.value & 0xFF) << 24) | (self.operand & 0xFFFFFF)
 
     @classmethod
     def decode(cls, machine_word: int) -> "Instruction | int":
-        """Распаковывает 32 битное слово в объект Instruction.
-        Если опкод неизвестен - возвращает сырые данные"""
+        """Decode a 32-bit word into an Instruction or return raw machine word if unknown."""
         opcode_raw = (machine_word >> 24) & 0xFF
         operand = machine_word & 0xFFFFFF
         if operand & 0x800000:
@@ -76,56 +104,54 @@ class Instruction:
             return machine_word
 
 
-class BinaryManager:
+class DumpWriter:
     @staticmethod
-    def write_binary(bin_filepath: str, memory: list[int], start_address: int) -> None:
-        """Записывает дамп памяти в .bin и рядом кладёт текстовый дамп _dump.log."""
+    def _mnemonic(word: int) -> str:
+        """Convert memory word to an instruction mnemonic, or just data if not an opcode."""
+        instruction = Instruction.decode(word)
+        if not isinstance(instruction, Instruction):
+            return f"DATA ({word})"
+        if instruction.opcode in INSTRUCTIONS_WITH_OPERANDS:
+            return f"{instruction.opcode.name} {instruction.operand}"
+        return instruction.opcode.name
 
-        def flush_zeros(zero_end: int) -> None:
-            if zero_end == zero_start:
-                log_f.write(f"{zero_start:04d} - 00000000 - 0\n")
-            else:
-                log_f.write(f"{zero_start:04d}-{zero_end:04d} - 00000000 - 0\n")
+    @staticmethod
+    def write_dump(bin_filepath: str, memory: list[int], start_address: int) -> None:
+        """Write the binary image and a human-readable dump alongside it."""
 
-        log_filepath = bin_filepath.replace(".bin", "_dump.log")
-        zero_start = None
+        # trim trailing zeros
+        end = len(memory)
+        while end > 0 and memory[end - 1] == 0:
+            end -= 1
+        image = memory[:end]
 
-        with open(bin_filepath, "wb") as bin_f, open(log_filepath, "w", encoding="utf-8") as log_f:
+        # binary dump: big-endian 32-bit
+        with open(bin_filepath, "wb") as bin_f:
             bin_f.write(struct.pack(">i", start_address))
-            log_f.write(f"START: {start_address:04d}\n\n")
-
-            for addr, word in enumerate(memory):
+            for word in image:
                 bin_f.write(struct.pack(">i", word))
 
-                if word == 0:
-                    if zero_start is None:
-                        zero_start = addr
-                    continue
-
-                if zero_start is not None:
-                    flush_zeros(addr - 1)
-                    zero_start = None
-
-                hex_str = f"{word & 0xFFFFFFFF:08X}"
-                instruction = Instruction.decode(word)
-
-                if isinstance(instruction, Instruction):
-                    opcode = instruction.opcode
-                    if opcode in _INSTRUCTIONS_WITH_OPERANDS:
-                        instr_str = f"{opcode.name} {instruction.operand}"
-                    else:
-                        instr_str = opcode.name
+        # hex dump
+        dump_filepath = bin_filepath.replace(".bin", ".dump")
+        with open(dump_filepath, "w", encoding="utf-8") as log_f:
+            log_f.write(f"START: {start_address:04d}\n\n")
+            addr = 0
+            for is_zero, group in groupby(image, key=lambda word: word == 0):
+                words = list(group)
+                if is_zero:
+                    last = addr + len(words) - 1
+                    span = f"{addr:04d}" if last == addr else f"{addr:04d}-{last:04d}"
+                    log_f.write(f"{span} - 00000000 - 0\n")
+                    addr = last + 1
                 else:
-                    instr_str = f"DATA ({word})"
-
-                log_f.write(f"{addr:04d} - {hex_str} - {instr_str}\n")
-
-            if zero_start is not None:
-                flush_zeros(len(memory) - 1)
+                    for word in words:
+                        hex_str = f"{word & 0xFFFFFFFF:08X}"
+                        log_f.write(f"{addr:04d} - {hex_str} - {DumpWriter._mnemonic(word)}\n")
+                        addr += 1
 
     @staticmethod
     def read_binary(filepath: str) -> tuple[list[int], int]:
-        """Читает .bin: первые 4 байта — адрес старта, далее — память."""
+        """Read binary file where first 4 bytes are start address, other - memory words."""
         memory: list[int] = []
         start_address = 0
         with open(filepath, "rb") as f:

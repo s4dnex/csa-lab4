@@ -18,5 +18,5 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
-testpaths = ["tests"]
+testpaths = ["test"]
 enable_assertion_pass_hook = true
