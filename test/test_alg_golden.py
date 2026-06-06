@@ -32,7 +32,7 @@ def test_alg_pipeline(golden, caplog):
         asm_path = os.path.join(tmpdir, "program.asm")
         bin_path = os.path.join(tmpdir, "program.bin")
         input_path = os.path.join(tmpdir, "input.txt")
-        dump_path = os.path.join(tmpdir, "program_dump.log")
+        dump_path = os.path.join(tmpdir, "program.dump")
 
         with open(asm_path, "w", encoding="utf-8") as f:
             f.write(asm)

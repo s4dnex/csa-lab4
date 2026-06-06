@@ -25,7 +25,7 @@ def test_translator_and_machine(golden, caplog):
         source_path = os.path.join(tmpdir, "source.asm")
         input_path = os.path.join(tmpdir, "input.txt")
         target_path = os.path.join(tmpdir, "output.bin")
-        target_hex_path = os.path.join(tmpdir, "output_dump.log")
+        dump_path = os.path.join(tmpdir, "output.dump")
 
         with open(source_path, "w", encoding="utf-8") as f:
             f.write(golden["in_source"])
@@ -40,7 +40,7 @@ def test_translator_and_machine(golden, caplog):
             translator.main(source_path, target_path)
             machine.main(target_path, input_path if stdin_content else "")
 
-        with open(target_hex_path, encoding="utf-8") as f:
+        with open(dump_path, encoding="utf-8") as f:
             machine_code = f.read()
 
     trunc_logs = truncate("\n".join(record.getMessage() for record in caplog.records))
