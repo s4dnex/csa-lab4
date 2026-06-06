@@ -42,7 +42,7 @@ def translate(source_code: str) -> tuple[list[int], int]:
     parsed_instructions = []
 
     for line in code_lines:
-        # Remove comments and whitespaces
+        # remove comments and whitespaces
         line = line.split(";")[0].strip()
         if not line:
             continue
@@ -55,7 +55,7 @@ def translate(source_code: str) -> tuple[list[int], int]:
             pc = int(line.split()[1], 0)
             continue
 
-        # Take labels and corresponding program counter
+        # take labels and corresponding program counter
         if ":" in line and '"' not in line.split(":")[0]:
             label, rest = line.split(":", 1)
             labels[label.strip()] = pc
@@ -63,7 +63,7 @@ def translate(source_code: str) -> tuple[list[int], int]:
             if not line:
                 continue
 
-        # Write numbers and strings
+        # write numbers and strings
         if section == ".data":
             if line.startswith(".word"):
                 val_str = line.split(maxsplit=1)[1].strip()
@@ -80,7 +80,7 @@ def translate(source_code: str) -> tuple[list[int], int]:
                     pc += 1
             continue
 
-        # Decode instructions
+        # decode instructions
         if section == ".text":
             parts = line.split(maxsplit=1)
             opcode = parts[0].upper()
@@ -89,7 +89,7 @@ def translate(source_code: str) -> tuple[list[int], int]:
             parsed_instructions.append((pc, opcode, operand_str))
             pc += 1
 
-    # Replace labels
+    # replace labels
     for addr, opcode, operand_str in parsed_instructions:
         operand_val = 0
 

@@ -60,6 +60,26 @@ INSTRUCTIONS_WITH_OPERANDS = frozenset(
     }
 )
 
+ALU_UNARY_OPERATIONS = frozenset({Opcode.NOT})
+
+ALU_BINARY_OPERATIONS = frozenset(
+    {
+        Opcode.ADD,
+        Opcode.SUB,
+        Opcode.ADDC,
+        Opcode.SUBC,
+        Opcode.MUL,
+        Opcode.MULH,
+        Opcode.DIV,
+        Opcode.MOD,
+        Opcode.CMP,
+        Opcode.GT,
+        Opcode.LT,
+        Opcode.AND,
+        Opcode.OR,
+    }
+)
+
 
 class Instruction:
     def __init__(self, opcode: Opcode, operand: int):

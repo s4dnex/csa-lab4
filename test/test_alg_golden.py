@@ -23,7 +23,7 @@ def truncate(log: str) -> str:
 def test_alg_pipeline(golden, caplog):
     """alg -> AST -> asm -> binary -> machine, checked end to end."""
     program = alg.parse(golden["in_source"])
-    ast = alg.ast_dump(program)
+    ast = alg.dump_ast(program)
     asm = alg.generate(program)
 
     caplog.set_level(logging.DEBUG)

@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 # Lexer
 KEYWORDS = frozenset({"let", "if", "else", "while", "func", "return", "interrupt"})
 
-TOKEN_RE = re.compile(
+TOKEN_REGEX = re.compile(
     r"""
       (?P<ws>\s+)
     | (?P<comment>//[^\n]*)
@@ -34,7 +34,7 @@ def tokenize(source: str) -> list[Token]:
     tokens: list[Token] = []
     pos = 0
     while pos < len(source):
-        match = TOKEN_RE.match(source, pos)
+        match = TOKEN_REGEX.match(source, pos)
         if match is None:
             raise SyntaxError(f"Unexpected character {source[pos]!r} at position {pos}")
         pos = match.end()
@@ -156,9 +156,9 @@ class Program(Node):
 
 
 # Parser
-COMPARES = frozenset({"==", "!=", "<", ">", "<=", ">="})
-ADDOPS = frozenset({"+", "-"})
-MULOPS = frozenset({"*", "/", "%"})
+COMPARE_OPS = frozenset({"==", "!=", "<", ">", "<=", ">="})
+ADD_OPS = frozenset({"+", "-"})
+MUL_OPS = frozenset({"*", "/", "%"})
 
 
 class Parser:
@@ -198,7 +198,7 @@ class Parser:
         self.expect("func")
         name = self.advance().value
         self.expect("(")
-        self.expect(")")  # no parameters in this minimal language
+        self.expect(")")  # no parameters in functions
         body = self.parse_block()
         return FuncDef(name, body)
 
@@ -288,21 +288,21 @@ class Parser:
 
     def parse_comparison(self) -> Node:
         node = self.parse_additive()
-        while self.cur.value in COMPARES:
+        while self.cur.value in COMPARE_OPS:
             op = self.advance().value
             node = BinOp(op, node, self.parse_additive())
         return node
 
     def parse_additive(self) -> Node:
         node = self.parse_term()
-        while self.cur.value in ADDOPS:
+        while self.cur.value in ADD_OPS:
             op = self.advance().value
             node = BinOp(op, node, self.parse_term())
         return node
 
     def parse_term(self) -> Node:
         node = self.parse_unary()
-        while self.cur.value in MULOPS:
+        while self.cur.value in MUL_OPS:
             op = self.advance().value
             node = BinOp(op, node, self.parse_unary())
         return node
@@ -311,7 +311,8 @@ class Parser:
         if self.cur.value == "-":
             self.advance()
             operand = self.parse_unary()
-            if isinstance(operand, Num):  # constant-fold negative literals
+            if isinstance(operand, Num):
+                # constant-fold negative literals
                 return Num(-operand.value)
             return UnaryOp("-", operand)
         return self.parse_primary()
@@ -365,12 +366,12 @@ def parse(source: str) -> Program:
 
 
 # AST dump (human-readable)
-def ast_dump(node: object, indent: int = 0) -> str:
+def dump_ast(node: object, indent: int = 0) -> str:
     pad = "  " * indent
     if isinstance(node, list):
         if not node:
             return f"{pad}[]"
-        return "\n".join(ast_dump(item, indent) for item in node)
+        return "\n".join(dump_ast(item, indent) for item in node)
     if isinstance(node, Node):
         name = type(node).__name__
         fields = vars(node)
@@ -380,7 +381,7 @@ def ast_dump(node: object, indent: int = 0) -> str:
         for key, value in fields.items():
             if isinstance(value, Node | list):
                 lines.append(f"{pad}  {key}:")
-                lines.append(ast_dump(value, indent + 2))
+                lines.append(dump_ast(value, indent + 2))
             else:
                 lines.append(f"{pad}  {key}: {value!r}")
         return "\n".join(lines)
@@ -461,7 +462,8 @@ class CodeGen:
         if isinstance(node, Num):
             self.emit(f"push {node.value}")
         elif isinstance(node, Var):
-            if node.name in self.arrays:  # bare array name -> base address
+            if node.name in self.arrays:
+                # bare array name -> base address
                 self.emit(f"push {self.var_label(node.name)}")
             else:
                 self.emit(f"pushm {self.var_label(node.name)}")
@@ -548,10 +550,10 @@ class CodeGen:
             raise ValueError(f"{node.name!r} expects {count} argument(s), got {len(node.args)}")
 
     # Statements
-
     def gen_stmt(self, node: Node) -> None:
         if isinstance(node, Let) and isinstance(node.expr, ArrayLit):
-            return  # array storage is emitted in the .data section; no runtime init
+            # array storage is emitted in the .data section; no runtime init
+            return
         if isinstance(node, Let | Assign):
             self.gen_expr(node.expr)
             self.emit(f"popm {self.var_label(node.name)}")
@@ -608,9 +610,8 @@ class CodeGen:
         self.emit(f"{end_label}:")
 
     # Whole program
-
     def generate(self) -> str:
-        # Generate all code first, so variable/string/array usage is collected.
+        # generate all code first, so variable/string/array usage is collected.
         body_text: list[str] = []
         self.text = body_text
         for stmt in self.program.body:
@@ -635,7 +636,8 @@ class CodeGen:
             self.emit("iret")
 
         lines: list[str] = []
-        if self.program.interrupt is not None:  # interrupt vector at address 0x0
+        if self.program.interrupt is not None:
+            # interrupt vector at address 0x0
             lines += [".text", ".org 0x0", "    jump __isr", ""]
 
         lines.append(".data")
@@ -712,5 +714,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.ast:
         with open(args.source, encoding="utf-8") as src:
-            print(ast_dump(parse(src.read())))
+            print(dump_ast(parse(src.read())))
     main(args.source, args.output)

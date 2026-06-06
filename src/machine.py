@@ -3,7 +3,14 @@ import ast
 import logging
 import sys
 
-from isa import INSTRUCTIONS_WITH_OPERANDS, DumpWriter, Instruction, Opcode
+from isa import (
+    ALU_BINARY_OPERATIONS,
+    ALU_UNARY_OPERATIONS,
+    INSTRUCTIONS_WITH_OPERANDS,
+    DumpWriter,
+    Instruction,
+    Opcode,
+)
 
 logger = logging.getLogger("machine")
 
@@ -15,12 +22,6 @@ WORD_MASK = 0xFFFFFFFF
 def to_signed32(x: int) -> int:
     x = x & WORD_MASK
     return x - 0x100000000 if x & 0x80000000 else x
-
-
-def format_stack(stack: list[int]) -> str:
-    if len(stack) <= DATA_STACK_LOG_SIZE:
-        return str(stack)
-    return f"{str(stack[:DATA_STACK_LOG_SIZE])[:-1]}, ...]"
 
 
 class DataPath:
@@ -38,25 +39,6 @@ class DataPath:
         self.SYM_OUTPUT_ADDR = 65534
         self.DEC_OUTPUT_ADDR = 65535
 
-    def memory_read(self, addr: int) -> int:
-        if addr == self.INPUT_ADDR:
-            val = self.input_port
-            self.input_port = None
-            return val if val is not None else 0
-        if 0 <= addr < self.memory_size:
-            return self.memory[addr]
-        raise IndexError(f"Memory Read: Address {addr} out of bounds")
-
-    def memory_write(self, addr: int, val: int) -> None:
-        if addr == self.SYM_OUTPUT_ADDR:
-            self.output_buffer += chr(val % 256)
-        elif addr == self.DEC_OUTPUT_ADDR:
-            self.output_buffer += str(val)
-        elif 0 <= addr < self.memory_size:
-            self.memory[addr] = val
-        else:
-            raise IndexError(f"Memory Write: Address {addr} out of bounds")
-
     def push(self, val: int) -> None:
         if len(self.data_stack) >= self.MAX_STACK_SIZE:
             raise OverflowError("Data Stack: Overflow")
@@ -67,7 +49,26 @@ class DataPath:
             raise IndexError("Data Stack: Underflow")
         return self.data_stack.pop()
 
-    def alu_op(self, opcode: Opcode) -> None:
+    def read_memory(self, addr: int) -> int:
+        if addr == self.INPUT_ADDR:
+            val = self.input_port
+            self.input_port = None
+            return val if val is not None else 0
+        if 0 <= addr < self.memory_size:
+            return self.memory[addr]
+        raise IndexError(f"Memory Read: Address {addr} out of bounds")
+
+    def write_memory(self, addr: int, val: int) -> None:
+        if addr == self.SYM_OUTPUT_ADDR:
+            self.output_buffer += chr(val % 256)
+        elif addr == self.DEC_OUTPUT_ADDR:
+            self.output_buffer += str(val)
+        elif 0 <= addr < self.memory_size:
+            self.memory[addr] = val
+        else:
+            raise IndexError(f"Memory Write: Address {addr} out of bounds")
+
+    def alu_binary_op(self, opcode: Opcode) -> None:
         b = self.pop()
         a = self.pop()
         a_u = a & WORD_MASK
@@ -121,7 +122,6 @@ class DataPath:
         elif opcode == Opcode.MOD:
             if b == 0:
                 raise ZeroDivisionError("Division by zero")
-            # remainder of truncated division, consistent with DIV's int(a / b)
             self.push(to_signed32(a - b * int(a / b)))
 
         elif opcode == Opcode.CMP:
@@ -133,7 +133,7 @@ class DataPath:
         elif opcode == Opcode.LT:
             self.push(1 if a < b else 0)
 
-    def alu_unary(self, opcode: Opcode) -> None:
+    def alu_unary_op(self, opcode: Opcode) -> None:
         a = self.pop()
         if opcode == Opcode.NOT:
             self.push(to_signed32((~a) & WORD_MASK))
@@ -176,10 +176,8 @@ class ControlUnit:
             self.log("Interrupt trigger")
 
     def fetch(self) -> tuple[Opcode, int]:
-        # Single-cycle fetch: the word read from memory is latched straight into IR
-        # through MUX_DR (bypassing DR), while PC is incremented on the same edge.
         addr = self.pc
-        word = self.dp.memory_read(addr)
+        word = self.dp.read_memory(addr)
         self.pc += 1
         self.tick()
 
@@ -191,127 +189,95 @@ class ControlUnit:
     def execute_instruction(self, opcode: Opcode, operand: int) -> None:
         self.instructions_executed += 1
 
-        if opcode == Opcode.HALT:
-            self.halted = True
-            self.tick()
-
-        elif opcode == Opcode.PUSH:
+        if opcode == Opcode.PUSH:
             self.dp.push(operand)
-            self.tick()
 
         elif opcode == Opcode.PUSHM:
-            val = self.dp.memory_read(operand)
+            val = self.dp.read_memory(operand)
             self.tick()
             self.dp.push(val)
-            self.tick()
-
-        elif opcode == Opcode.POP:
-            self.dp.pop()
-            self.tick()
-
-        elif opcode == Opcode.POPM:
-            val = self.dp.pop()
-            self.tick()
-            self.dp.memory_write(operand, val)
-            self.tick()
-
-        elif opcode == Opcode.DUP:
-            val = self.dp.data_stack[-1]
-            self.tick()
-            self.dp.push(val)
-            self.tick()
 
         elif opcode == Opcode.PUSHI:
             addr = self.dp.pop()
             self.tick()
-            val = self.dp.memory_read(addr)
+            val = self.dp.read_memory(addr)
             self.tick()
             self.dp.push(val)
+
+        elif opcode == Opcode.POP:
+            self.dp.pop()
+
+        elif opcode == Opcode.POPM:
+            val = self.dp.pop()
             self.tick()
+            self.dp.write_memory(operand, val)
 
         elif opcode == Opcode.POPI:
             val = self.dp.pop()
             self.tick()
             addr = self.dp.pop()
             self.tick()
-            self.dp.memory_write(addr, val)
-            self.tick()
+            self.dp.write_memory(addr, val)
 
-        elif opcode in (
-            Opcode.ADD,
-            Opcode.SUB,
-            Opcode.ADDC,
-            Opcode.SUBC,
-            Opcode.MUL,
-            Opcode.MULH,
-            Opcode.DIV,
-            Opcode.MOD,
-            Opcode.CMP,
-            Opcode.GT,
-            Opcode.LT,
-            Opcode.AND,
-            Opcode.OR,
-        ):
-            self.dp.alu_op(opcode)
+        elif opcode == Opcode.DUP:
+            val = self.dp.data_stack[-1]
             self.tick()
+            self.dp.push(val)
 
-        elif opcode == Opcode.NOT:
-            self.dp.alu_unary(opcode)
-            self.tick()
+        elif opcode in ALU_UNARY_OPERATIONS:
+            self.dp.alu_unary_op(opcode)
+
+        elif opcode in ALU_BINARY_OPERATIONS:
+            self.dp.alu_binary_op(opcode)
 
         elif opcode == Opcode.JUMP:
             self.pc = operand
-            self.tick()
 
         elif opcode == Opcode.BEQZ:
             if self.dp.pop() == 0:
                 self.pc = operand
-            self.tick()
 
         elif opcode == Opcode.BNEZ:
             if self.dp.pop() != 0:
                 self.pc = operand
-            self.tick()
 
         elif opcode == Opcode.BVS:
             if self.dp.overflow:
                 self.pc = operand
-            self.tick()
-
-        elif opcode == Opcode.BCS:
-            if self.dp.carry:
-                self.pc = operand
-            self.tick()
-
-        elif opcode == Opcode.BCC:
-            if not self.dp.carry:
-                self.pc = operand
-            self.tick()
 
         elif opcode == Opcode.BVC:
             if not self.dp.overflow:
                 self.pc = operand
-            self.tick()
+
+        elif opcode == Opcode.BCS:
+            if self.dp.carry:
+                self.pc = operand
+
+        elif opcode == Opcode.BCC:
+            if not self.dp.carry:
+                self.pc = operand
 
         elif opcode == Opcode.CALL:
             if len(self.dp.return_stack) >= self.dp.MAX_STACK_SIZE:
                 raise OverflowError("Return Stack: Overflow")
             self.dp.return_stack.append(self.pc)
             self.pc = operand
-            self.tick()
 
         elif opcode == Opcode.RET:
             if not self.dp.return_stack:
                 raise IndexError("Return Stack: Underflow")
             self.pc = self.dp.return_stack.pop()
-            self.tick()
 
         elif opcode == Opcode.IRET:
             if not self.dp.return_stack:
                 raise IndexError("Return Stack: Underflow")
             self.pc = self.dp.return_stack.pop()
             self.ei = True
-            self.tick()
+
+        elif opcode == Opcode.HALT:
+            self.halted = True
+
+        self.tick()
 
     def run(self) -> None:
         try:
@@ -381,6 +347,12 @@ def load_interrupt_schedule(schedule_filepath: str) -> list[tuple[int, str]]:
     return interrupt_schedule
 
 
+def format_stack(stack: list[int]) -> str:
+    if len(stack) <= DATA_STACK_LOG_SIZE:
+        return str(stack)
+    return f"{str(stack[:DATA_STACK_LOG_SIZE])[:-1]}, ...]"
+
+
 def main(code_file: str, schedule_filepath: str) -> None:
     prog_memory, start_address = DumpWriter.read_binary(code_file)
     interrupt_schedule = load_interrupt_schedule(schedule_filepath)
@@ -391,7 +363,7 @@ def main(code_file: str, schedule_filepath: str) -> None:
     prefix = "Output:       "
     indent = " " * len(prefix)
     aligned = dp.output_buffer.replace("\n", "\n" + indent)
-    if aligned.endswith("\n" + indent):  # drop dangling indent on a trailing newline
+    if aligned.endswith("\n" + indent):
         aligned = aligned[: -len(indent)]
     print(f"{prefix}{aligned}")
     print(f"Ticks:        {cu.ticks}")
