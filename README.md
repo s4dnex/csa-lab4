@@ -73,7 +73,7 @@ bare name `a` evaluates to the base address, and `len(a)` is the compile-time le
 
 **Interrupts** - an `interrupt { … }` block becomes the handler, whose address is stored at the vector
 `0x0`. `input()` reads one character from the input port (MMIO 65533). The handler ends
-with an implicit `IRET`.
+with an implicit `IRET`. `di()` / `ei()` let mask and unmask interrupts.
 
 **Built-ins:**
 
@@ -84,6 +84,7 @@ with an implicit `IRET`.
 | `input()`                                | Read one character from the input port (65533)                                                      |
 | `len(a)`                                 | Compile-time length of array `a`                                                                    |
 | `halt()`                                 | Stop the machine                                                                                    |
+| `ei()`, `di()`                           | Enable / disable interrupts (`EI` / `DI`)                                                            |
 | `addc(a, b)`, `subc(a, b)`, `mulh(a, b)` | Carry-aware add / subtract, and high word of a product - used for 64-bit arithmetic (`double_math`) |
 
 <!-- 
@@ -257,9 +258,9 @@ Von Neumann architecture - a single address space for instructions and data.
 
 - **I/O:** memory-mapped I/O (addresses 65533–65535). Access via `PUSHM` / `PUSHI` / `POPM` / `POPI`.
 
-- **Interrupts:** each **tick**, the interrupt schedule is checked: if the scheduled tick has arrived and the **port is empty**, the character is written to `input_port` and `IRQ` is set. If the port is busy, the new character is **dropped**. The handler runs **between instructions**: before fetch, `IRQ && EI` is tested - if true, `PC` is pushed to the Return Stack, `PC <- 0x0`, `EI <- 0` and `IRQ <- 0`. `IRET` restores `PC` and sets `EI <- 1`. `input_port` is cleared when read at `INPUT_ADDR`.
+- **Interrupts:** interrupts are **disabled by default** (`EI = 0`); a program that wants to receive input must enable them with the `EI` instruction (or `ei()` in `alg`). Each **tick**, the interrupt schedule is checked: if the scheduled tick has arrived, the character is written to `input_port` and `IRQ` is set. The handler runs **between instructions**: before fetch, `IRQ && EI` is tested - if true, `PC` is pushed to the Return Stack, `PC <- 0x0`, `EI <- 0` and `IRQ <- 0`. `IRET` restores `PC` and sets `EI <- 1`. `EI` / `DI` set or clear `EI` directly. `input_port` is cleared when read at `INPUT_ADDR`.
 
-- **Nested interrupts** are not allowed (`EI = 0`). If a character arrives while `EI = 0` but the port is already empty (the handler has read it), the character is placed in `input_port` and `IRQ` is set. After `IRET`, it will be serviced again because interrupts are re-enabled. If the port is still busy, the character is lost.
+- **Nested interrupts** are not allowed (`EI = 0`). A newer character **overwrites** whatever is still in the port - if the handler has not yet read the previous one, the previous character is lost unless the handler has already read it.
 
 - **Flags:**
   - `carry` (C) - unsigned carry:
@@ -326,6 +327,8 @@ Immediate operand takes up to 24 bits, address - up to 16 bits.
 | `RET`    | 0x1F   | -           | `PC = RS.pop()`                               | 1              |
 | `IRET`   | 0x20   | -           | `PC = RS.pop(); EI = 1`                       | 1              |
 | `HALT`   | 0x21   | -           | Halt                                          | 1              |
+| `EI`     | 0x22   | -           | `EI = 1` (enable interrupts)                  | 1              |
+| `DI`     | 0x23   | -           | `EI = 0` (disable interrupts)                 | 1              |
 ---
 
 ## Translator
@@ -464,7 +467,7 @@ The Control Unit is **hardwired**. The `Instruction Decoder` decodes the opcode 
 | `IR` (Instruction Register)    | ControlUnit | 32    | The fetched instruction word. Latched directly from `MUX_DR` (from the memory data bus). Opcode goes to the `Instruction Decoder`, operand goes to the `DataPath`. |
 | `Return Stack`                 | ControlUnit | 16    | Return addresses for `CALL`/`RET`/`IRET` and the interrupt entry.                                                                                                  |
 | `SC` (Step Counter)            | ControlUnit | 4     | Step within the current instruction.                                                                                                                               |
-| `EI`                           | ControlUnit | 1     | Interrupt-enable flip-flop.                                                                                                                                        |
+| `EI`                           | ControlUnit | 1     | Interrupt-enable flip-flop. Cleared by default. Set/cleared by `EI` / `DI` / interrupt entry / `IRET`.                                                               |
 | `AR` (Address Register)        | DataPath    | 16    | Memory address for **indirect** access; loaded from the data-stack top via `MUX_AR` (used by `PUSHI`/`POPI`).                                                      |
 | `DR` (Data Register)           | DataPath    | 32    | Buffers a data word moving between memory/IO and the data stack. Not used during instruction fetch - `IR` is latched from `MUX_DR` directly.                       |
 | `Data Stack` (`Top`, `Second`) | DataPath    | 32    | Operand stack. `Top`/`Second` feed the ALU to perform arithmetic and logic operations.                                                                             |
@@ -533,8 +536,8 @@ python src\translator.py example\asm\hello_world.asm out\hello_world.bin
 python src\machine.py out\hello_world.bin
 
  ISR  | Tick  |  PC  |      Data Stack      | EI | C | V | 
- ---  | 00001 | 0010 | []                   | 1  | 0 | 0 | PUSH 0
- ---  | 00003 | 0011 | [0]                  | 1  | 0 | 0 | POPM 14
+ ---  | 00001 | 0010 | []                   | 0  | 0 | 0 | PUSH 0
+ ---  | 00003 | 0011 | [0]                  | 0  | 0 | 0 | POPM 14
  ...
 
 Output:       Hello, World!
@@ -542,10 +545,7 @@ Ticks:        458
 Instructions: 162
 ```
 
-In the log, `Tick` marks the start of the execute phase of the current instruction (after the 1-cycle fetch). Lines with `ISR` mean execution inside the interrupt handler. Input delivery and loss are logged separately: 
-
-- `Interrupt input of <char>` 
-- `Interrupt input of <char> WAS DROPPED`
+In the log, `Tick` marks the start of the execute phase of the current instruction (after the 1-cycle fetch). Lines with `ISR` mean execution inside the interrupt handler. `Interrupt trigger` marks the entry into the handler.
 
 ### Golden Tests
 

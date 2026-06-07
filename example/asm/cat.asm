@@ -4,6 +4,7 @@ trap_vector:
     jump process_trap
 
 _start:
+    ei
 useless:
     jump useless
 

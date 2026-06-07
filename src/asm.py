@@ -8,10 +8,9 @@ import re
 import sys
 
 from isa import DumpWriter, Instruction, Opcode
+from machine import MEMORY_SIZE
 
 logger = logging.getLogger("asm")
-
-MEMORY_SIZE = 65536
 
 ESCAPES = {"n": "\n", "t": "\t", "r": "\r", "0": "\0", "\\": "\\", '"': '"'}
 
