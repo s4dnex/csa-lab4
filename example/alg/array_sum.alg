@@ -3,6 +3,7 @@ let n = len(array);
 let sum = 0;
 let i = 0;
 
+// sum of array
 while (i < n) {
     print(array[i]);
     if (i < n - 1) {

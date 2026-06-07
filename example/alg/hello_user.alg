@@ -1,4 +1,4 @@
-let name = [0, 0, 0, 0, 0, 0, 0, 0];
+let name = [0, 0, 0, 0, 0, 0, 0, 0]; // kostyl'
 let name_len = 0;
 let done = 0;
 
