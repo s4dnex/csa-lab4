@@ -512,6 +512,14 @@ class CodeGen:
             self.check_args(node, 0)
             self.emit("halt")
             return
+        if node.name == "ei":
+            self.check_args(node, 0)
+            self.emit("ei")
+            return
+        if node.name == "di":
+            self.check_args(node, 0)
+            self.emit("di")
+            return
         if node.name == "len":
             self.check_args(node, 1)
             arg = node.args[0]

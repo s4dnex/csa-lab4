@@ -17,7 +17,10 @@ logger = logging.getLogger("machine")
 DATA_STACK_LOG_SIZE = 3
 MAX_TICKS = 65536
 WORD_MASK = 0xFFFFFFFF
+
+# Memory alloc
 MEMORY_SIZE = 65536
+STACK_SIZE = 128
 
 # Memory-mapped I/O addresses
 INPUT_ADDR = 65533
@@ -31,22 +34,22 @@ def to_signed32(x: int) -> int:
 
 
 class DataPath:
-    def __init__(self, memory_size: int, prog_memory: list[int]):
-        self.memory: list[int] = prog_memory + [0] * (memory_size - len(prog_memory))
-        self.memory_size = memory_size
+    def __init__(self, program: list[int]):
+        self.memory_size = MEMORY_SIZE
+        self.stack_size = STACK_SIZE
+        self.memory: list[int] = program + [0] * (self.memory_size - len(program))
         self.carry = False
         self.overflow = False
         self.data_stack: list[int] = []
         self.return_stack: list[int] = []
         self.input_port: int | None = None
         self.output_buffer = ""
-        self.MAX_STACK_SIZE = 256
         self.INPUT_ADDR = INPUT_ADDR
         self.SYM_OUTPUT_ADDR = SYM_OUTPUT_ADDR
         self.DEC_OUTPUT_ADDR = DEC_OUTPUT_ADDR
 
     def push(self, val: int) -> None:
-        if len(self.data_stack) >= self.MAX_STACK_SIZE:
+        if len(self.data_stack) >= self.stack_size:
             raise OverflowError("Data Stack: Overflow")
         self.data_stack.append(val)
 
@@ -153,8 +156,9 @@ class ControlUnit:
         self.pc = start_address
         self.ticks = 0
         self.interrupt_vector = 0x0
-        self.ei = True
+        self.ei = False
         self.irq = False
+        self.in_isr = False
         self.halted = False
         self.interrupt_schedule = interrupt_schedule
         self.instructions_executed = 0
@@ -163,18 +167,17 @@ class ControlUnit:
         self.ticks += 1
         while self.interrupt_schedule and self.ticks == self.interrupt_schedule[0][0]:
             _, char = self.interrupt_schedule.pop(0)
-            if self.dp.input_port is None:
-                self.dp.input_port = ord(char)
-                self.irq = True
-                self.log(f"Interrupt input of {char!r}")
-            else:
-                self.log(f"Interrupt input of {char!r} WAS DROPPED")
+            # any new char overwrites whatever is still in the port
+            # if the handler has not yet read the previous one, that older input is lost
+            self.dp.input_port = ord(char)
+            self.irq = True
 
     def check_interrupt(self) -> None:
         if self.irq and self.ei:
             self.ei = False
             self.irq = False
-            if len(self.dp.return_stack) >= self.dp.MAX_STACK_SIZE:
+            self.in_isr = True
+            if len(self.dp.return_stack) >= self.dp.stack_size:
                 raise OverflowError("Return Stack: Overflow during interrupt")
             self.dp.return_stack.append(self.pc)
             self.pc = self.interrupt_vector
@@ -264,7 +267,7 @@ class ControlUnit:
                 self.pc = operand
 
         elif opcode == Opcode.CALL:
-            if len(self.dp.return_stack) >= self.dp.MAX_STACK_SIZE:
+            if len(self.dp.return_stack) >= self.dp.stack_size:
                 raise OverflowError("Return Stack: Overflow")
             self.dp.return_stack.append(self.pc)
             self.pc = operand
@@ -279,6 +282,13 @@ class ControlUnit:
                 raise IndexError("Return Stack: Underflow")
             self.pc = self.dp.return_stack.pop()
             self.ei = True
+            self.in_isr = False
+
+        elif opcode == Opcode.EI:
+            self.ei = True
+
+        elif opcode == Opcode.DI:
+            self.ei = False
 
         elif opcode == Opcode.HALT:
             self.halted = True
@@ -312,7 +322,7 @@ class ControlUnit:
             logger.error(f"Unexpected Error: {e}. Tick = {self.ticks}, PC = {self.pc:#06x}")
 
     def log(self, message: str) -> None:
-        isr_str = "ISR" if not self.ei else "---"
+        isr_str = "ISR" if self.in_isr else "---"
         ds_str = format_stack(self.dp.data_stack)
 
         logger.debug(
@@ -359,11 +369,11 @@ def format_stack(stack: list[int]) -> str:
     return f"{str(stack[:DATA_STACK_LOG_SIZE])[:-1]}, ...]"
 
 
-def main(code_file: str, schedule_filepath: str) -> None:
-    prog_memory, start_address = DumpWriter.read_binary(code_file)
+def main(program_filepath: str, schedule_filepath: str) -> None:
+    program, start_address = DumpWriter.read_binary(program_filepath)
     interrupt_schedule = load_interrupt_schedule(schedule_filepath)
 
-    dp = DataPath(MEMORY_SIZE, prog_memory)
+    dp = DataPath(program)
     cu = ControlUnit(dp, start_address, interrupt_schedule)
     cu.run()
     prefix = "Output:       "

@@ -44,6 +44,10 @@ class Opcode(IntEnum):
     IRET = 0x20
     HALT = 0x21
 
+    # Interrupt Control Instructions
+    EI = 0x22
+    DI = 0x23
+
 
 INSTRUCTIONS_WITH_OPERANDS = frozenset(
     {
