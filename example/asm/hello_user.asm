@@ -48,6 +48,7 @@ trap_end:
     iret
 
 _start:
+    ei
     push question
     call print_str
 

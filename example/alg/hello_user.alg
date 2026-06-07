@@ -14,6 +14,7 @@ interrupt {
     }
 }
 
+ei(); // interrupts are disabled by default
 print("What is your name? ");
 while (done == 0) {
 }

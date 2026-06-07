@@ -9,5 +9,6 @@ interrupt {
     putc(c);
 }
 
+ei(); // interrupts are disabled by default
 while (1) {
 }
