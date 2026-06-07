@@ -269,7 +269,6 @@ Von Neumann architecture - a single address space for instructions and data.
   - `overflow` (V) - signed overflow:
     - ADD, ADDC: set if both operands have the same sign and the result has the opposite sign
     - SUB, SUBC: set if operands have opposite signs and the result does not match the minuend's sign
-    - DIV: set when dividing INT_MIN by −1
 
   ADD, SUB, ADDC, and SUBC update both flags. Bitwise instructions (`NOT`, `AND`, `OR`) and branches do not modify flags.
 
@@ -464,7 +463,7 @@ The Control Unit is **hardwired**. The `Instruction Decoder` decodes the opcode 
 | `PC` (Program Counter)         | ControlUnit | 16    | Address of the next instruction. Loaded through `MUX_PC` from `PC + 1`, the operand (jump/branch/call target) or `0x0` (interrupt vector).                         |
 | `IR` (Instruction Register)    | ControlUnit | 32    | The fetched instruction word. Latched directly from `MUX_DR` (from the memory data bus). Opcode goes to the `Instruction Decoder`, operand goes to the `DataPath`. |
 | `Return Stack`                 | ControlUnit | 16    | Return addresses for `CALL`/`RET`/`IRET` and the interrupt entry.                                                                                                  |
-| `Step Counter` (SC)            | ControlUnit | 4     | Step within the current instruction.                                                                                                                               |
+| `SC` (Step Counter)            | ControlUnit | 4     | Step within the current instruction.                                                                                                                               |
 | `EI`                           | ControlUnit | 1     | Interrupt-enable flip-flop.                                                                                                                                        |
 | `AR` (Address Register)        | DataPath    | 16    | Memory address for **indirect** access; loaded from the data-stack top via `MUX_AR` (used by `PUSHI`/`POPI`).                                                      |
 | `DR` (Data Register)           | DataPath    | 32    | Buffers a data word moving between memory/IO and the data stack. Not used during instruction fetch - `IR` is latched from `MUX_DR` directly.                       |
@@ -485,7 +484,8 @@ They reach the Control Unit on the `Branch conditions /2` line and are tested by
 |-----------------------|----------------|-----------------------------------------------------------------------------------|
 | `PC Sel` + `PC Latch` | `MUX_PC`, `PC` | Select PC source and latch it.                                                    |
 | `AR Latch`            | `AR`           | Latch the Address Register.                                                       |
-| `AD Sel`              | `MUX_ADDR`     | Select memory address source: `PC` (fetch), operand (direct), or `AR` (indirect). |
+| `PCAD Sel`            | `MUX_PCAD`     | Select PC or operand to pass to memory address selector.                          |
+| `AD Sel`              | `MUX_AD`       | Select memory address source: `PC` (fetch), operand (direct), or `AR` (indirect). |
 | `DR Sel` + `DR Latch` | `MUX_DR`, `DR` | Select Data Register source and latch it.                                         |
 | `TS Sel`              | `MUX_TS`       | Select the value to store on top of the stack.                                    |
 | `ALU Op`              | `ALU`          | Select the ALU operation.                                                         |
@@ -504,7 +504,7 @@ The `Sign Extender` + `& 0xFFFFFF` block takes the 24-bit operand field, masks i
 
 The instruction fetch cycle is the same for all instructions and takes 1 cycle:
 
-1. `PC -> MUX_ADDR -> MEM[PC] -> MUX_DR -> IR` (`IR Latch`)
+1. `PC -> MUX_PCAD -> MUX_AD -> MEM[PC] -> MUX_DR -> IR` (`IR Latch`)
 
 After fetch, the execute phase runs.
 Between instructions, `IRQ && EI` is checked. If true, **one additional cycle** for `Return Stack <- PC`, `PC <- 0x0`, `EI <- 0`.

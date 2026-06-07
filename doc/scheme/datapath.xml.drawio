@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram name="Страница-1" id="lglgKJRIyCmV_bM8YlHy">
-        <mxGraphModel dx="1726" dy="1889" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+        <mxGraphModel dx="844" dy="1889" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -353,7 +353,7 @@
                 <mxCell id="126" value="Address Decoder" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#d6b656;strokeWidth=2;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=12;fontColor=#000000;fontStyle=1;fillColor=#fff2cc;" parent="1" vertex="1">
                     <mxGeometry x="945" y="-870" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="127" value="MUX_AR" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;fixedSize=1;rounded=0;strokeColor=#9673a6;strokeWidth=2;align=center;verticalAlign=middle;arcSize=15;fontFamily=Helvetica;fontSize=12;fontColor=light-dark(#000000,#EDEDED);fontStyle=1;fillColor=#e1d5e7;rotation=90;horizontal=0;" parent="1" vertex="1">
+                <mxCell id="127" value="MUX_AD" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;fixedSize=1;rounded=0;strokeColor=#9673a6;strokeWidth=2;align=center;verticalAlign=middle;arcSize=15;fontFamily=Helvetica;fontSize=12;fontColor=light-dark(#000000,#EDEDED);fontStyle=1;fillColor=#e1d5e7;rotation=90;horizontal=0;" parent="1" vertex="1">
                     <mxGeometry x="780" y="-870" width="105" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="128" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;startSize=8;endSize=8;shadow=0;flowAnimation=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;strokeColor=#c0392b;strokeWidth=2;align=left;verticalAlign=middle;fontFamily=Helvetica;fontColor=#C0392B;labelBackgroundColor=none;endArrow=classic;spacingLeft=0;spacingTop=0;spacing=2;labelBorderColor=none;jumpStyle=arc;labelPosition=right;verticalLabelPosition=middle;" parent="1" source="107" target="104" edge="1">
@@ -380,7 +380,7 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="131" value="MUX_ADDR" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;fixedSize=1;rounded=0;strokeColor=#9673a6;strokeWidth=2;align=center;verticalAlign=middle;arcSize=15;fontFamily=Helvetica;fontSize=12;fontColor=light-dark(#000000,#EDEDED);fontStyle=1;fillColor=#e1d5e7;rotation=0;horizontal=1;" parent="1" vertex="1">
+                <mxCell id="131" value="MUX_PCAD" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;fixedSize=1;rounded=0;strokeColor=#9673a6;strokeWidth=2;align=center;verticalAlign=middle;arcSize=15;fontFamily=Helvetica;fontSize=12;fontColor=light-dark(#000000,#EDEDED);fontStyle=1;fillColor=#e1d5e7;rotation=0;horizontal=1;" parent="1" vertex="1">
                     <mxGeometry x="627" y="-480" width="105" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="132" value="Address&lt;br&gt;/16" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.25;entryY=1;entryDx=0;entryDy=0;jumpStyle=arc;shadow=0;flowAnimation=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;labelBackgroundColor=none;labelPosition=right;verticalLabelPosition=middle;align=left;verticalAlign=middle;strokeColor=#1F9350;strokeWidth=2;fontFamily=Helvetica;fontSize=11;fontColor=#1F9350;endArrow=classic;spacingRight=0;spacing=4;" parent="1" source="104" target="131" edge="1">
@@ -419,6 +419,17 @@
                         <mxPoint x="548" y="-265" as="sourcePoint"/>
                         <mxPoint x="600" y="-300" as="targetPoint"/>
                         <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="137" value="PCAD Sel" style="edgeStyle=orthogonalEdgeStyle;rounded=1;dashed=1;strokeWidth=2;strokeColor=#c0392b;fontColor=#c0392b;fontSize=11;labelBackgroundColor=none;labelPosition=center;verticalLabelPosition=top;align=center;verticalAlign=bottom;spacing=4;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" target="131" edge="1">
+                    <mxGeometry x="-1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                        <Array as="points">
+                            <mxPoint x="600" y="-450"/>
+                            <mxPoint x="600" y="-450"/>
+                        </Array>
+                        <mxPoint x="598" y="-450" as="sourcePoint"/>
+                        <mxPoint x="540" y="-450" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
             </root>
