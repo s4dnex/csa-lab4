@@ -17,6 +17,7 @@ logger = logging.getLogger("machine")
 DATA_STACK_LOG_SIZE = 3
 MAX_TICKS = 65536
 WORD_MASK = 0xFFFFFFFF
+MEMORY_SIZE = 65536
 
 # Memory-mapped I/O addresses
 INPUT_ADDR = 65533
@@ -362,7 +363,7 @@ def main(code_file: str, schedule_filepath: str) -> None:
     prog_memory, start_address = DumpWriter.read_binary(code_file)
     interrupt_schedule = load_interrupt_schedule(schedule_filepath)
 
-    dp = DataPath(65536, prog_memory)
+    dp = DataPath(MEMORY_SIZE, prog_memory)
     cu = ControlUnit(dp, start_address, interrupt_schedule)
     cu.run()
     prefix = "Output:       "
