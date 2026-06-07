@@ -2,7 +2,7 @@ let array = [42, 15, 8, 100, 4, 23];
 let n = len(array);
 
 let i = n;
-// Bubble sort
+// Bubble sort of array
 while (i > 0) {
     let j = 0;
     while (j < i - 1) {

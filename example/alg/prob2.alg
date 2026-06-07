@@ -3,7 +3,7 @@ let i = 1;
 let sum = 0;
 let sqsum = 0;
 
-// Euler problem 6: (sum of 1..n)^2 - (sum of squares of 1..n)
+// Euler problem 6: (sum of [1..n])^2 - (sum of squares of [1..n])
 while (i <= n) {
     sum = sum + i;
     sqsum = sqsum + i * i;

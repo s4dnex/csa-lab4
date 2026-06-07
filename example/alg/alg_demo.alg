@@ -12,7 +12,7 @@ if (x % 2 == 0) {
     print("odd\n");
 }
 
-// nested arithmetic with precedence
+// nested arithmetic
 let y = 2 + 3 * (x - 1);
 print("y = ");
 print(y);
