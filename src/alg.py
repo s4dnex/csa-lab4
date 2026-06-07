@@ -8,6 +8,8 @@ import sys
 from dataclasses import dataclass, field
 from enum import Enum
 
+from machine import DEC_OUTPUT_ADDR, INPUT_ADDR, SYM_OUTPUT_ADDR
+
 # Lexer
 KEYWORDS = frozenset({"let", "if", "else", "while", "func", "return", "interrupt"})
 
@@ -54,7 +56,7 @@ def tokenize(source: str) -> list[Token]:
             # skip whitespaces and comments
             continue
         assert kind is not None
-        # keywords are lexed as names first, then reclassified
+        # keywords are lexed as names first
         is_keyword = kind == "name" and text in KEYWORDS
         token_kind = TokenKind.KEYWORD if is_keyword else TokenKind(kind)
         tokens.append(Token(token_kind, text, match.start()))
@@ -232,8 +234,6 @@ class Parser:
             return self.parse_while()
         if tok.value == "return":
             return self.parse_return()
-        # assignment `name = expr;`, indexed assignment `name[i] = expr;`,
-        # or a bare expression statement
         if tok.kind == TokenKind.NAME and self.tokens[self.i + 1].value == "=":
             name = self.advance().value
             self.expect("=")
@@ -270,7 +270,7 @@ class Parser:
         else_body: list[Node] = []
         if self.cur.value == "else":
             self.advance()
-            # else-if chains as a single nested if, otherwise a normal block
+            # check for else-if chains
             else_body = [self.parse_if()] if self.cur.value == "if" else self.parse_block()
         return If(cond, then_body, else_body)
 
@@ -287,13 +287,6 @@ class Parser:
         expr = None if self.cur.value == ";" else self.parse_expr()
         self.expect(";")
         return Return(expr)
-
-    # Expression grammar (lowest to highest precedence):
-    #   comparison -> additive ((== | != | < | > | <= | >=) additive)*
-    #   additive   -> term ((+ | -) term)*
-    #   term       -> unary ((* | / | %) unary)*
-    #   unary      -> "-" unary | primary
-    #   primary    -> number | string | name | name "(" args ")" | "(" expr ")"
 
     def parse_expr(self) -> Node:
         return self.parse_comparison()
@@ -400,10 +393,7 @@ def dump_ast(node: object, indent: int = 0) -> str:
     return f"{pad}{node!r}"
 
 
-# Code generation (alg AST -> asm text)
-OUTPUT_DEC = 65535
-OUTPUT_SYM = 65534
-
+# Code generation (alg AST -> asm)
 # comparison operator -> asm snippet producing a 0/1 value (operands already pushed)
 COMPARE_SNIPPETS = {
     "==": ["cmp"],
@@ -416,7 +406,6 @@ COMPARE_SNIPPETS = {
 ARITH_OPS = {"+": "add", "-": "sub", "*": "mul", "/": "div", "%": "mod"}
 # two-operand built-ins that map straight to one ALU instruction
 ALU_BUILTINS = {"addc": "addc", "subc": "subc", "mulh": "mulh"}
-INPUT_ADDR = 65533
 
 
 class CodeGen:
@@ -432,7 +421,6 @@ class CodeGen:
         self._collect_arrays()
 
     def _collect_arrays(self) -> None:
-        """Pre-pass: every `let x = [..]` declares an array, regardless of order."""
         blocks = [self.program.body, self.program.interrupt or []]
         blocks += [f.body for f in self.program.functions]
         for block in blocks:
@@ -514,7 +502,7 @@ class CodeGen:
         if node.name == "putc":
             self.check_args(node, 1)
             self.gen_expr(node.args[0])
-            self.emit(f"popm {OUTPUT_SYM}")
+            self.emit(f"popm {SYM_OUTPUT_ADDR}")
             return
         if node.name == "input":
             self.check_args(node, 0)
@@ -554,7 +542,7 @@ class CodeGen:
             self.uses_print_str = True
         else:
             self.gen_expr(arg)
-            self.emit(f"popm {OUTPUT_DEC}")
+            self.emit(f"popm {DEC_OUTPUT_ADDR}")
 
     @staticmethod
     def check_args(node: Call, count: int) -> None:
@@ -623,7 +611,6 @@ class CodeGen:
 
     # Whole program
     def generate(self) -> str:
-        # generate all code first, so variable/string/array usage is collected.
         body_text: list[str] = []
         self.text = body_text
         for stmt in self.program.body:
@@ -669,7 +656,7 @@ class CodeGen:
         lines.extend(self.indent(func_text))
         lines.extend(self.indent(isr_text))
         if self.uses_print_str:
-            lines.extend(self.print_str_routine())
+            lines.extend(self.print_str_procedure())
         return "\n".join(lines) + "\n"
 
     @staticmethod
@@ -677,7 +664,7 @@ class CodeGen:
         return [line if line.endswith(":") else f"    {line}" for line in lines]
 
     @staticmethod
-    def print_str_routine() -> list[str]:
+    def print_str_procedure() -> list[str]:
         return [
             "__print_str:",
             "    popm __sp",
@@ -685,7 +672,7 @@ class CodeGen:
             "    pushm __sp",
             "    pushi",
             "    beqz __print_str_end",
-            f"    push {OUTPUT_SYM}",
+            f"    push {SYM_OUTPUT_ADDR}",
             "    pushm __sp",
             "    pushi",
             "    popi",
