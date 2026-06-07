@@ -18,6 +18,11 @@ DATA_STACK_LOG_SIZE = 3
 MAX_TICKS = 65536
 WORD_MASK = 0xFFFFFFFF
 
+# Memory-mapped I/O addresses
+INPUT_ADDR = 65533
+SYM_OUTPUT_ADDR = 65534
+DEC_OUTPUT_ADDR = 65535
+
 
 def to_signed32(x: int) -> int:
     x = x & WORD_MASK
@@ -32,12 +37,12 @@ class DataPath:
         self.overflow = False
         self.data_stack: list[int] = []
         self.return_stack: list[int] = []
-        self.MAX_STACK_SIZE = 256
         self.input_port: int | None = None
         self.output_buffer = ""
-        self.INPUT_ADDR = 65533
-        self.SYM_OUTPUT_ADDR = 65534
-        self.DEC_OUTPUT_ADDR = 65535
+        self.MAX_STACK_SIZE = 256
+        self.INPUT_ADDR = INPUT_ADDR
+        self.SYM_OUTPUT_ADDR = SYM_OUTPUT_ADDR
+        self.DEC_OUTPUT_ADDR = DEC_OUTPUT_ADDR
 
     def push(self, val: int) -> None:
         if len(self.data_stack) >= self.MAX_STACK_SIZE:
