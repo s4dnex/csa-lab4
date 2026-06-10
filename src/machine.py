@@ -155,6 +155,7 @@ class ControlUnit:
         self.dp = data_path
         self.pc = start_address
         self.ticks = 0
+        self.sc = 0
         self.interrupt_vector = 0x0
         self.ei = False
         self.irq = False
@@ -165,10 +166,9 @@ class ControlUnit:
 
     def tick(self) -> None:
         self.ticks += 1
+        self.sc += 1
         while self.interrupt_schedule and self.ticks == self.interrupt_schedule[0][0]:
             _, char = self.interrupt_schedule.pop(0)
-            # any new char overwrites whatever is still in the port
-            # if the handler has not yet read the previous one, that older input is lost
             self.dp.input_port = ord(char)
             self.irq = True
 
@@ -197,41 +197,54 @@ class ControlUnit:
 
     def execute_instruction(self, opcode: Opcode, operand: int) -> None:
         self.instructions_executed += 1
+        self.sc = 0
 
         if opcode == Opcode.PUSH:
             self.dp.push(operand)
 
         elif opcode == Opcode.PUSHM:
-            val = self.dp.read_memory(operand)
-            self.tick()
-            self.dp.push(val)
+            if self.sc == 0:
+                val = self.dp.read_memory(operand)
+                self.tick()
+            if self.sc == 1:
+                self.dp.push(val)
 
         elif opcode == Opcode.PUSHI:
-            addr = self.dp.pop()
-            self.tick()
-            val = self.dp.read_memory(addr)
-            self.tick()
-            self.dp.push(val)
+            if self.sc == 0:
+                addr = self.dp.pop()
+                self.tick()
+            if self.sc == 1:
+                val = self.dp.read_memory(addr)
+                self.tick()
+            if self.sc == 2:
+                self.dp.push(val)
 
         elif opcode == Opcode.POP:
             self.dp.pop()
 
         elif opcode == Opcode.POPM:
-            val = self.dp.pop()
-            self.tick()
-            self.dp.write_memory(operand, val)
+            if self.sc == 0:
+                val = self.dp.pop()
+                self.tick()
+            if self.sc == 1:
+                self.dp.write_memory(operand, val)
 
         elif opcode == Opcode.POPI:
-            val = self.dp.pop()
-            self.tick()
-            addr = self.dp.pop()
-            self.tick()
-            self.dp.write_memory(addr, val)
+            if self.sc == 0:
+                val = self.dp.pop()
+                self.tick()
+            if self.sc == 1:
+                addr = self.dp.pop()
+                self.tick()
+            if self.sc == 2:
+                self.dp.write_memory(addr, val)
 
         elif opcode == Opcode.DUP:
-            val = self.dp.data_stack[-1]
-            self.tick()
-            self.dp.push(val)
+            if self.sc == 0:
+                val = self.dp.data_stack[-1]
+                self.tick()
+            if self.sc == 1:
+                self.dp.push(val)
 
         elif opcode in ALU_UNARY_OPERATIONS:
             self.dp.alu_unary_op(opcode)
